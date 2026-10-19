@@ -1,4 +1,4 @@
-# Lighting Lab quick start
+# Lighting Lab quick start`r`n`r`nOn Windows, double-click **Start Lighting Lab.cmd** to start the local server and open the editor. Keep its terminal window open while you use Lighting Lab.
 
 1. Open `http://localhost:4318`. If PowerShell says port 4318 is already in use, Lighting Lab is
    already running; use the browser page instead of starting a second server.

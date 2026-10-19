@@ -6,7 +6,9 @@ backups remain in ignored `docs/background/keyboard-layout/`.
 
 ## Run
 
-From the repository root, using Windows PowerShell:
+On Windows, double-click **Start Lighting Lab.cmd**. It checks for Node, opens the browser after the local server starts, and leaves the terminal visible so a startup error is readable.
+
+Or run from the repository root in Windows PowerShell:
 
 ```powershell
 node server.cjs

@@ -1,8 +1,9 @@
-﻿/* The documented root command must work without ignored source files or personal profiles. */
+/* The documented root command must work without ignored source files or personal profiles. */
 'use strict';
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {spawn} = require('node:child_process');
+const fs = require('node:fs');
 const path = require('node:path');
 
 test('root launcher starts the tracked app and serves its complete module set', async t => {
@@ -30,4 +31,13 @@ test('root launcher starts the tracked app and serves its complete module set', 
     assert((await response.text()).length > 100, route + ' must contain real source');
   }
   assert(!output.includes('docs/background/keyboard-layout'), 'source launcher must not depend on ignored assets');
+});
+
+test('Windows launcher enters its own root, reports a missing Node runtime, then opens the local editor', () => {
+  const launcher = fs.readFileSync(path.resolve(__dirname, '..', 'Start Lighting Lab.cmd'), 'utf8');
+  assert.match(launcher, /cd \/d "%~dp0"/);
+  assert.match(launcher, /where node >nul 2>nul/);
+  assert.match(launcher, /Node\.js 22 or newer/);
+  assert.match(launcher, /Start-Process 'http:\/\/localhost:4318'/);
+  assert.match(launcher, /node server\.cjs/);
 });
