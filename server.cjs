@@ -1,4 +1,4 @@
-﻿/* Local Lighting Lab HTTP boundary. Device adapters never receive browser-supplied paths. */
+/* Local Lighting Lab HTTP boundary. Device adapters never receive browser-supplied paths. */
 'use strict';
 
 const http = require('node:http');
@@ -12,6 +12,7 @@ const {createChromaSdkProvider,APP_TITLE} = require('./providers/chroma-sdk.cjs'
 const {validateSelection} = require('./lighting-domain.cjs');
 const {detectDevice} = require('./device-profile.cjs');
 const {createProfileStore,profileCapabilities} = require('./profiles.cjs');
+const {createAppProfileStore,resolveRule} = require('./app-profiles.cjs');
 const {createControlVerificationStore} = require('./control-verification.cjs');
 
 const ROOT = __dirname;
@@ -60,14 +61,25 @@ async function readJson(request) {
   return result;
 }
 
+/** Probe only configured executable names; no window text or process inventory leaves this adapter. */
+function createWindowsAppProbe(execFileImpl){
+  return async executableNames=>{
+    if(!Array.isArray(executableNames)||executableNames.length===0)return {apps:[],checkedAt:new Date().toISOString()};
+    const {stdout}=await execFileImpl('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(ROOT,'app-profile-monitor.ps1'),'-AppName',...executableNames],{windowsHide:true,timeout:5_000});
+    const report=JSON.parse(String(stdout).trim().split(/\r?\n/).at(-1));
+    return {apps:Array.isArray(report.apps)?report.apps:[],checkedAt:report.checkedAt||new Date().toISOString()};
+  };
+}
+
 /** Build an isolated server so API tests can exercise real HTTP without touching a keyboard. */
 function createLightingLabServer({sdk = createChromaSdkProvider(), synapse = nativeBridge(),
   detectDeviceImpl = detectDevice, exporter, spawnImpl = spawn,
-  execFileImpl=promisify(execFile),
+  execFileImpl=promisify(execFile), appProbe=createWindowsAppProbe(execFileImpl), platform=process.platform,
   stateDirectory = process.env.LIGHTING_LAB_STATE || path.resolve(ROOT, '.artifacts/lighting-lab'),
 } = {}) {
   const auditPath = path.join(stateDirectory, 'audit.jsonl');
   const profiles=createProfileStore(path.join(stateDirectory,'profiles'));
+  const appProfileStore=createAppProfileStore(stateDirectory);
   const controlVerification=createControlVerificationStore(path.join(stateDirectory,'control-verification.json'));
   let inputProcess;
   let inputBuffer = '';
@@ -81,6 +93,8 @@ function createLightingLabServer({sdk = createChromaSdkProvider(), synapse = nat
   let nativeAt = 0;
   let pending = Promise.resolve();
   let lastSelection = null;
+  let appProfileTimer, appSwitchCandidate, activeAppProfileId;
+  let appProfileState={available:platform==='win32',apps:[],detail:platform==='win32'?'No app rules configured.':'App Profiles requires Windows on the computer running Lighting Lab.'};
 
   /** The SDK adapter uses one generic keyboard canvas; choosing a device controls identity and preview, not an undocumented HID route. */
   function selectedDevice(){
@@ -190,6 +204,29 @@ function createLightingLabServer({sdk = createChromaSdkProvider(), synapse = nat
     return{...loaded,archiveDownloadUrl:'/api/profiles/'+saved.id+'/archive'};
   }
 
+  /** Resolve configured app rules locally, then reuse normal profile activation and its audit trail. */
+  async function refreshAppProfiles({allowSwitch=true}={}){
+    const config=await appProfileStore.load();
+    const names=[...new Set(config.rules.filter(rule=>rule.enabled).map(rule=>rule.executable))];
+    if(platform!=='win32'){appProfileState={available:false,apps:[],detail:'App Profiles requires Windows on the computer running Lighting Lab.'};return {config,runtime:appProfileState};}
+    if(!config.automatic||names.length===0){appSwitchCandidate=undefined;appProfileState={available:true,apps:[],detail:config.automatic?'No enabled app rules configured.':'Automatic switching is off.'};return {config,runtime:appProfileState};}
+    try{
+      const report=await appProbe(names),apps=names.map(executable=>{const found=(report.apps||[]).find(item=>String(item.executable).toLowerCase()===executable.toLowerCase())||{};return {executable,running:found.running===true,foreground:found.foreground===true};});
+      const summaries=await profiles.list(),candidate=resolveRule(config,apps,new Set(summaries.map(profile=>profile.id)));
+      appProfileState={available:true,apps,checkedAt:report.checkedAt||new Date().toISOString(),candidateId:candidate?.id||null,activeId:activeAppProfileId||null,detail:candidate?`Matched ${candidate.name}.`:'No configured app rule currently matches.'};
+      if(!allowSwitch||!candidate){appSwitchCandidate=undefined;return {config,runtime:appProfileState};}
+      if(activeAppProfileId===candidate.id)return {config,runtime:appProfileState};
+      if(appSwitchCandidate?.id!==candidate.id){appSwitchCandidate={id:candidate.id,at:Date.now()};appProfileState.detail=`Matched ${candidate.name}; waiting ${config.waitMs} ms before switching.`;return {config,runtime:appProfileState};}
+      if(Date.now()-appSwitchCandidate.at<config.waitMs)return {config,runtime:appProfileState};
+      const saved=await profiles.load(candidate.profileId),auditId=crypto.randomUUID();await audit({event:'app-profile-switch-started',auditId,ruleId:candidate.id,profileId:saved.id});
+      const loaded=await serialize(()=>activateProfile(saved,auditId));activeAppProfileId=candidate.id;appProfileState={...appProfileState,activeId:candidate.id,detail:`Active: ${candidate.name} → ${saved.name}.`};await audit({event:'app-profile-switched',auditId,ruleId:candidate.id,profileId:saved.id,loaded});
+    }catch(error){appProfileState={...appProfileState,available:false,detail:`App Profile check failed: ${error.message}`};}
+    return {config,runtime:appProfileState};
+  }
+  function ensureAppProfilePolling(){
+    if(appProfileTimer)return;appProfileTimer=setInterval(()=>refreshAppProfiles().catch(()=>undefined),1000);appProfileTimer.unref?.();
+  }
+
   const server = http.createServer(async (request, response) => {
     let auditId;
     try {
@@ -219,6 +256,22 @@ function createLightingLabServer({sdk = createChromaSdkProvider(), synapse = nat
         return respond(response, 200, {createdAt: new Date().toISOString(), status: await status(),
           recentAudit: await recentAudit(), deferredIssues: ['LAN client timeout and browser chromweb/401 reports: not yet diagnosed.']});
       }
+      if(request.method==='GET'&&url.pathname==='/api/app-profiles'){
+        const state=await refreshAppProfiles({allowSwitch:false});return respond(response,200,{config:state.config,runtime:state.runtime,profiles:await profiles.list()});
+      }
+      if(request.method==='POST'&&url.pathname==='/api/app-profiles/config'){
+        const body=await readJson(request),config=await appProfileStore.update(current=>({...current,automatic:body.automatic,waitMs:body.waitMs,transitionMs:body.transitionMs}));ensureAppProfilePolling();const state=await refreshAppProfiles({allowSwitch:false});return respond(response,200,{config,runtime:state.runtime});
+      }
+      if(request.method==='POST'&&url.pathname==='/api/app-profiles'){
+        const body=await readJson(request);await profiles.load(body.profileId);const config=await appProfileStore.update(current=>({...current,rules:[...current.rules,body]}));ensureAppProfilePolling();const state=await refreshAppProfiles({allowSwitch:false});return respond(response,200,{config,runtime:state.runtime});
+      }
+      const appProfileRoute=url.pathname.match(/^\/api\/app-profiles\/([a-f0-9-]{36})\/(toggle|delete|move|test)$/);
+      if(request.method==='POST'&&appProfileRoute){
+        const [,ruleId,action]=appProfileRoute,body=await readJson(request),current=await appProfileStore.load(),index=current.rules.findIndex(rule=>rule.id===ruleId);if(index<0)throw new Error('Choose a saved app rule.');
+        if(action==='test'){const saved=await profiles.load(current.rules[index].profileId);auditId=crypto.randomUUID();const loaded=await serialize(()=>activateProfile(saved,auditId));await audit({event:'app-profile-tested',auditId,ruleId,profileId:saved.id,loaded});return respond(response,200,{profile:saved,loaded});}
+        const config=await appProfileStore.update(config=>{const rules=[...config.rules];if(action==='toggle')rules[index]={...rules[index],enabled:body.enabled!==false};if(action==='delete')rules.splice(index,1);if(action==='move'){const target=Math.max(0,Math.min(rules.length-1,index+(body.direction==='up'?-1:1)));const [rule]=rules.splice(index,1);rules.splice(target,0,rule);}return {...config,rules};});ensureAppProfilePolling();const state=await refreshAppProfiles({allowSwitch:false});return respond(response,200,{config,runtime:state.runtime});
+      }
+      if(request.method==='POST'&&url.pathname==='/api/app-profiles/refresh'){const state=await refreshAppProfiles();return respond(response,200,state);}
       if(request.method==='GET'&&url.pathname==='/api/profiles')return respond(response,200,{profiles:await profiles.list(),controllers:profileCapabilities({effect:url.searchParams.get('effect'),feedback:url.searchParams.get('feedback')},Boolean((await synapse.status()).available))});
       const profileRoute=url.pathname.match(/^\/api\/profiles\/([a-f0-9-]{36})(?:\/(load|archive))?$/);
       if(profileRoute){
@@ -308,6 +361,7 @@ function createLightingLabServer({sdk = createChromaSdkProvider(), synapse = nat
     }
   });
   server.shutdown = async () => {
+    if(appProfileTimer)clearInterval(appProfileTimer);
     disableInput();
     await serialize(() => sdk.release()).catch(() => undefined);
     if (server.listening) await new Promise(resolve => server.close(resolve));

@@ -195,3 +195,18 @@ test('a failed Synapse launch or navigation cannot become a successful repair me
   const body=await(await f.post('/api/repair',setup)).json();assert.equal(body.opened,false);assert.match(body.detail,/could not be verified/);assert.match(body.openError,/timeout/);
   const records=(await fs.readFile(path.join(f.directory,'audit.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);assert.equal(records.at(-1).openFailure.stderr,stderr);assert.equal(records.at(-1).openFailure.stdout,'helper output');
 });
+
+test('app profile API switches only an explicit matching saved profile after ordered rule evaluation',async t=>{
+  let present=false;
+  const f=await fixture(t,{platform:'win32',appProbe:async names=>({apps:names.map(executable=>({executable,running:present,foreground:present})),checkedAt:'2026-10-19T00:00:00.000Z'})});
+  const saved=await (await f.post('/api/profiles',{name:'Code Focus',software:'lighting-lab',settings:{...setup,effect:'matrix'}})).json();
+  const rule={name:'Visual Studio Code',executable:'Code.exe',condition:'foreground',profileId:saved.profile.id};
+  assert.equal((await f.post('/api/app-profiles/config',{automatic:true,waitMs:0,transitionMs:400})).status,200);
+  assert.equal((await f.post('/api/app-profiles',rule)).status,200);
+  present=true;
+  const first=await(await f.post('/api/app-profiles/refresh',{})).json();assert.match(first.runtime.detail,/waiting 0 ms/);
+  const switched=await(await f.post('/api/app-profiles/refresh',{})).json();assert.match(switched.runtime.detail,/Active: Visual Studio Code/);
+  assert.equal(f.calls.at(-1).effect,'matrix');
+  const listed=await(await fetch(f.base+'/api/app-profiles')).json();assert.equal(listed.config.rules[0].executable,'Code.exe');assert.equal(listed.runtime.apps[0].foreground,true);
+  const missing=await f.post('/api/app-profiles',{...rule,profileId:'33333333-3333-4333-8333-333333333333'});assert.equal(missing.status,422);
+});
