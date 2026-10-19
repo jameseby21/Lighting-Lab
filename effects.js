@@ -5,7 +5,7 @@
   const BLACK={red:0,green:0,blue:0},WHITE={red:255,green:255,blue:255};
   const EFFECTS=['ghost','subtle-keywords','rainbow-road','stars-stripes','matrix','chaos','solid','breathing','spectrum','waterfall','fire','starlight','wave','aurora','radar','prism'];
   const DYNAMIC_EFFECTS=['none','rainbow-road','stars-stripes','matrix','chaos','breathing','spectrum','fire','starlight','wave','aurora','radar','prism'];
-  const REACTIONS=['none','reactive','ripple','waterfall','flash','fading-trail','rainbow-ripple','pulse','sparkle','comet'];
+  const REACTIONS=['none','reactive','ripple','waterfall','flash','fading-trail','rainbow-ripple','pulse','sparkle','comet','flame'];
   const GROUP_NAMES=['anchor','background','orientation'];
   function clamp(n){return Math.max(0,Math.min(255,Math.round(n)));}
   function rgb(red,green,blue){return{red:clamp(red),green:clamp(green),blue:clamp(blue)};}
@@ -51,6 +51,8 @@
       else if(mode==='waterfall'){const elapsed=age-dr*150;if(dr>=0&&Math.abs(dc)<=.8&&elapsed>=0&&elapsed<420)alpha=1-elapsed/420;}
       else if(mode==='fading-trail'){const elapsed=age-dc*100;if(Math.abs(dr)<=.5&&dc>=0&&elapsed>=0&&elapsed<700)alpha=1-elapsed/700;}
       else if(mode==='comet'){const elapsed=age-dc*120;if(Math.abs(dr)<=.5&&dc>=0&&elapsed>=0&&elapsed<900)alpha=1-elapsed/900;}
+      // Flame is deliberately key-local: every RGB keyboard can show a vivid blue flare without requiring neighboring LEDs.
+      else if(mode==='flame'){if(dr===0&&dc===0&&age<950){const flicker=.72+(hash(`${event.id}:${Math.floor(age/70)}`)%29)/100;alpha=Math.max(0,(1-age/950)*flicker);}}
       else if(mode==='sparkle'){const sparkle=hash(`${event.id}:${id}:${Math.floor(age/100)}`)%9;if(age<700&&sparkle===0)alpha=1-age/700;}
       if(alpha>0){const color=mode==='rainbow-ripple'?hue((age+Math.hypot(dr,dc)*40)/7,.9,1):parseColor(target.reactionColor,WHITE),candidate={color,alpha};if(!result||candidate.alpha>result.alpha)result=candidate;}
     }return result;

@@ -103,7 +103,7 @@ test('Matrix uses one falling green row with deterministic dark spacing; stripes
 
 test('Lighting Lab originals extend the native-style catalog with distinct rendered motion and reactions',()=>{
   for(const effect of ['aurora','radar','prism'])assert(Effects.EFFECTS.includes(effect),effect);
-  for(const reaction of ['pulse','sparkle','comet'])assert(Effects.REACTIONS.includes(reaction),reaction);
+  for(const reaction of ['pulse','sparkle','comet','flame'])assert(Effects.REACTIONS.includes(reaction),reaction);
   const base=settings({effect:'aurora'}),radar=settings({effect:'radar'}),prism=settings({effect:'prism'});
   assert.notDeepEqual(Effects.frame(base,400),Effects.frame(radar,400));assert.notDeepEqual(Effects.frame(base,400),Effects.frame(prism,400));
   assert(rgbToBgr(Effects.sample(settings({feedback:'pulse',minimalist:true}),'Q',0,[{id:'Q',at:0}]))>0);
@@ -237,6 +237,10 @@ test('group settings independently compose anchor, background, and orientation l
   assert.equal(rgbToBgr(Effects.sample(selection,'Q',0)),0xaa00ff);
   assert.equal(rgbToBgr(Effects.sample(selection,'Q',0,[{id:'Q',at:0}])),0xffffff);
   assert.equal(rgbToBgr(Effects.sample(selection,'ESC',0)),0xccff00);
+  const flame={...selection,groups:{...selection.groups,anchor:{...selection.groups.anchor,reaction:'flame',reactionColor:'#2aa8ff'}}};
+  const flare=Effects.sample(flame,'Q',0,[{id:'Q',at:0}]);
+  assert(flare.blue>flare.red&&flare.blue>flare.green,'blue flame sits above a fixed anchor color');
+  assert.equal(rgbToBgr(Effects.sample(flame,'Q',1000,[{id:'Q',at:0}])),0xaa00ff,'blue flame returns to the anchor base after its fade');
   assert.equal(Effects.isAnimated(selection),true);
 });
 
