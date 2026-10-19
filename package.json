@@ -1,0 +1,13 @@
+{
+  "name": "jeby-lighting-lab",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Local RGB effect editor and capability-aware preset export",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "node tests/browser-check.cjs",
+    "test:native-diagnostic": "node tests/build-native-diagnostic.cjs"
+  },
+  "engines": {"node": ">=22"}
+}

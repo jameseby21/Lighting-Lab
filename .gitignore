@@ -1,0 +1,10 @@
+﻿.artifacts/
+runtime/
+.env
+node_modules/
+*.ChromaEffects
+*.exe
+*.zip
+*.log
+.DS_Store
+Thumbs.db
