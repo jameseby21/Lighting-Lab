@@ -1,4 +1,4 @@
-﻿# Jeby Lighting Lab
+# Jeby Lighting Lab
 
 Local keyboard lighting editor, preset gallery, physical keyboard preview, and capability-aware
 preset export. The runnable source is now tracked here. Private historical profiles, logs, and
@@ -24,6 +24,10 @@ Synapse-authentication, and application errors must be distinguished by endpoint
 The desktop/phone browser controls the keyboard attached to the server computer. Opening this
 page from another PC does **not** give the server access to that PC's USB keyboard. Use the local
 server there or a supported portable preset export to affect that computer's hardware.
+
+## First-run product path
+
+The homepage now starts with three local-only steps: pick a recognizable preset, test a reaction in the browser, then focus **Apply** only when the user is ready to affect hardware. It is dismissible and its progress remains only in that browser's local storage. The gallery includes twelve one-click starting points, including Aurora, Radar Sweep, and Prism Flow. This deliberately improves time-to-first-preview without pretending that a preview proves device control.
 
 ## Development chunks
 

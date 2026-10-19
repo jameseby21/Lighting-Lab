@@ -3,6 +3,7 @@
 'use strict';
 const K = KeyboardPlan, E = LightingEffects, $ = id => document.getElementById(id);
 const STORAGE_KEY = 'lighting-lab-setup-v2';
+const ONBOARDING_KEY = 'lighting-lab-onboarding-v1';
 let anchors = new Set(K.defaultAnchors), protectedAnchors = new Set(), legends = {}, assignments = [];
 let customLayout = null, customBaseModel = 'standard-full-size', manualModel = false;
 let deviceStatus = {model:'Unknown keyboard', source:'fallback'}, providerStatus = null;
@@ -42,7 +43,10 @@ const presets = [
   {name:'Stars & Stripes',detail:'Red & white rising bands',swatch:'stripes',effect:'stars-stripes',feedback:'reactive'},
   {name:'Noob Deterrent',detail:'Your chosen anchor keys',swatch:'keywords',effect:'subtle-keywords',feedback:'reactive'},
   {name:'Chaos',detail:'Random color. Random motion.',swatch:'chaos',effect:'chaos',feedback:'reactive'},
-  {name:'Color Study',detail:'One color. All yours.',swatch:'solid',effect:'solid',feedback:'reactive'}
+  {name:'Color Study',detail:'One color. All yours.',swatch:'solid',effect:'solid',feedback:'reactive'},
+  {name:'Aurora',detail:'Slow teal and violet drift',swatch:'aurora',effect:'aurora',feedback:'pulse'},
+  {name:'Radar Sweep',detail:'A green scan through the dark',swatch:'radar',effect:'radar',feedback:'sparkle'},
+  {name:'Prism Flow',detail:'Clean color movement',swatch:'prism',effect:'prism',feedback:'comet'}
 ];
 
 /** Return an immutable, complete setup suitable for JSON, live providers, and executable export. */
@@ -111,7 +115,7 @@ function renderGroupEditor(){
   editor.querySelectorAll('[data-group]').forEach(control=>control.onchange=()=>{groupSettings[control.dataset.group][control.dataset.field]=control.value;changed(false);});
 }
 function assignToPaintGroup(id){if(paintMode==='test'){fireReaction(id);return;}const target=groupKeys[paintMode];if(target.has(id)&&paintMode!=='background'){target.delete(id);groupKeys.background.add(id);}else{for(const name of E.GROUP_NAMES)groupKeys[name].delete(id);target.add(id);}normalizeGroups();changed(false);}
-function fireReaction(id){if(!id)return;events.push({id:inputAliases[id]||id,at:performance.now()});paintPreview(performance.now());if(serverAvailable&&liveProviderAvailable&&$('live').checked)fetch('/api/key-press',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:id})}).catch(()=>undefined);}
+function fireReaction(id){if(!id)return;markOnboarding('test');events.push({id:inputAliases[id]||id,at:performance.now()});paintPreview(performance.now());if(serverAvailable&&liveProviderAvailable&&$('live').checked)fetch('/api/key-press',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:id})}).catch(()=>undefined);}
 
 /** Use physical geometry instead of line wrapping, preserving full-height Enter and numpad identities. */
 function renderBoard() {
@@ -147,8 +151,14 @@ function renderSelection() {
   const visible=new Set(layout.keys.map(key=>key.id));
   $('selection-count').textContent=`${[...anchors].filter(id=>visible.has(id)).length} color · ${[...protectedAnchors].filter(id=>visible.has(id)).length} protected`;
 }
+function onboardingState(){try{return JSON.parse(localStorage.getItem(ONBOARDING_KEY)||'{}')||{};}catch{return {};}}
+/** Keep first-run progress local to this browser; it never becomes device or account telemetry. */
+function markOnboarding(step){try{const next={...onboardingState(),[step]:true};localStorage.setItem(ONBOARDING_KEY,JSON.stringify(next));}catch{/* A private-mode preview remains fully usable. */}renderOnboarding();}
+function renderOnboarding(){const panel=$('quickstart');if(!panel)return;const state=onboardingState();panel.hidden=state.dismissed===true;if(panel.hidden)return;for(const item of panel.querySelectorAll('[data-onboarding-step]'))item.dataset.complete=String(Boolean(state[item.dataset.onboardingStep]));const completed=['preset','test','apply'].filter(step=>state[step]).length;$('quickstart-status').textContent=completed===3?'You are ready to save a profile or keep customizing.':`${completed} of 3 complete. The preview stays local until you choose Apply.`;}
+/** Apply a gallery choice through the same state path as the advanced controls. */
+function choosePreset(preset){$('background').value=preset.effect;$('feedback').value=preset.feedback;groupSettings.background.dynamic=preset.effect==='ghost'||preset.effect==='solid'||preset.effect==='subtle-keywords'?'none':preset.effect;groupSettings.background.base=preset.effect==='solid'?'static':'off';groupSettings.background.reaction=preset.feedback;$('minimalist').checked=Boolean(preset.minimalist);markOnboarding('preset');changed(false);}
 function renderDetails() {
-  renderGroupEditor();
+  renderGroupEditor();renderOnboarding();
   const pinned=layout.keys.filter(key=>anchors.has(key.id)||protectedAnchors.has(key.id)).length;
   $('layer-warning').textContent=[$('minimalist').checked?'Keypress Only is on: the background is deliberately dark.':'',pinned?`${pinned} of ${layout.keys.length} keys have fixed colors; the background appears on the remaining ${layout.keys.length-pinned}. Clear color anchors to expose more of the effect.`:'','Keyword reactions sit above their fixed colors unless you explicitly protect them.'].filter(Boolean).join(' ');
   $('issue-status').textContent=brokenKeys.size?`Reported unresponsive: ${[...brokenKeys].join(', ')}. These keys remain in the layout.`:'No unresponsive keys recorded.';
@@ -253,7 +263,11 @@ function applyGeometry() {
 for(const model of K.modelCatalog){const option=document.createElement('option');option.value=model.id;option.textContent=model.label;$('keyboard-model').append(option);}
 if(!K.modelCatalog.some(model=>model.id==='custom')){const option=document.createElement('option');option.value='custom';option.textContent='Custom keyboard view';$('keyboard-model').append(option);}
 $('keyboard-model').value='standard-full-size';
-presets.forEach(preset=>{const button=document.createElement('button');button.className='preset-card';button.setAttribute('aria-pressed','false');const swatch=document.createElement('span');swatch.className=`preset-swatch swatch-${preset.swatch}`;swatch.setAttribute('aria-hidden','true');const title=document.createElement('b');title.textContent=preset.name;const detail=document.createElement('small');detail.textContent=preset.detail;button.append(swatch,title,detail);button.onclick=()=>{$('background').value=preset.effect;$('feedback').value=preset.feedback;groupSettings.background.dynamic=preset.effect==='ghost'||preset.effect==='solid'||preset.effect==='subtle-keywords'?'none':preset.effect;groupSettings.background.base=preset.effect==='solid'?'static':'off';groupSettings.background.reaction=preset.feedback;$('minimalist').checked=Boolean(preset.minimalist);changed(false);};$('preset-gallery').append(button);});
+presets.forEach(preset=>{const button=document.createElement('button');button.className='preset-card';button.setAttribute('aria-pressed','false');const swatch=document.createElement('span');swatch.className=`preset-swatch swatch-${preset.swatch}`;swatch.setAttribute('aria-hidden','true');const title=document.createElement('b');title.textContent=preset.name;const detail=document.createElement('small');detail.textContent=preset.detail;button.append(swatch,title,detail);button.onclick=()=>choosePreset(preset);$('preset-gallery').append(button);});
+$('onboarding-starter').onclick=()=>choosePreset(presets.find(preset=>preset.name==='Rainbow Ripple'));
+$('onboarding-test').onclick=()=>{$('selection-mode').value='test';paintMode='test';renderSelection();markOnboarding('test');$('test-typing').focus();};
+$('onboarding-apply').onclick=()=>{markOnboarding('apply');$('workspace').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});$('apply').focus();};
+$('onboarding-dismiss').onclick=()=>{try{localStorage.setItem(ONBOARDING_KEY,JSON.stringify({...onboardingState(),dismissed:true}));}catch{/* Dismissing is optional convenience only. */}$('quickstart').hidden=true;};
 K.alternatives.forEach((candidate,index)=>{const option=document.createElement('option');option.value=index;option.textContent=`${index===0?'Noob Deterrent':`Option ${index}`} · ${candidate.join(' / ')}`;$('candidate').append(option);});
 $('words').value=K.alternatives[0].join(', ');
 $('background').value='rainbow-road';
@@ -272,6 +286,7 @@ $('pause-preview').onclick=()=>{previewPaused=!previewPaused;renderDetails();per
 $('live').onchange=()=>{persist();if($('live').checked)queueLiveUpdate(true);else{clearTimeout(liveUpdateTimer);pendingSelection=null;setStatus('apply-status','Live changes paused. Current hardware lighting continues; edits affect the preview.');}};
 $('connect').onclick=async()=>{await refreshProviderStatus();if(liveProviderAvailable){$('live').checked=true;persist();queueLiveUpdate(true);}else setStatus('apply-status','Live control is not physically available through the selected provider. Apply can retest Chroma; Synapse uses Save as Profile and Load Profile.','problem');};
 $('apply').onclick=()=>{
+  markOnboarding('apply');
   if($('provider').value!=='chroma-sdk'){
     setStatus('apply-status','Synapse Studio applies saved profiles. Use Save as Profile, then Load Profile, for this provider.','problem');return;
   }

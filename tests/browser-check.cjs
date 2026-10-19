@@ -1,4 +1,4 @@
-﻿/* Real-browser regression checks with an isolated HTTP provider fixture; no physical RGB is changed. */
+/* Real-browser regression checks with an isolated HTTP provider fixture; no physical RGB is changed. */
 'use strict';
 const {spawn}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),http=require('node:http'),assert=require('node:assert/strict');
@@ -51,8 +51,10 @@ async function main(){
       check(byId('keyboard-model').value==='standard-full-size','unknown model falls back to full ANSI');
       check(configuration().effect==='rainbow-road'&&configuration().speed===3.5,'fresh setup starts with visible Rainbow Road at 350 percent speed');
       check(document.querySelectorAll('.key').length===104,'all 104 physical switches render');
-      check(document.querySelectorAll('#preset-gallery button').length===9,'nine click-only presets render');
-      const q=document.querySelector('[data-id="Q"]'),one=document.querySelector('[data-id="1"]'),num=document.querySelector('[data-id="NUM_1"]');
+      check(!byId('quickstart').hidden&&document.querySelectorAll('#preset-gallery button').length===12,'first-run guide and twelve click-only presets render');
+      byId('onboarding-starter').click();check(configuration().effect==='rainbow-road'&&configuration().feedback==='ripple','starter guide applies a complete gallery preset');
+      byId('onboarding-test').click();check(document.activeElement===byId('test-typing')&&JSON.parse(localStorage.getItem('lighting-lab-onboarding-v1')).test,'starter guide opens a safe preview reaction test');
+      change('selection-mode','anchor');const q=document.querySelector('[data-id="Q"]'),one=document.querySelector('[data-id="1"]'),num=document.querySelector('[data-id="NUM_1"]');
       check(q&&one&&num&&one!==num,'main numerals and numpad keys have unique identities');
       const main=q.getBoundingClientRect(),pad=num.getBoundingClientRect();check(pad.left>main.right&&pad.top<main.top+200,'numpad stays beside main cluster');
       check(byId('board-scroll').scrollWidth<=byId('board-scroll').clientWidth+2,'full keyboard fits wide desktop window');
