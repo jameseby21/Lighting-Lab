@@ -1,4 +1,4 @@
-# Lighting Lab standalone repository handoff
+﻿# Lighting Lab standalone repository handoff
 
 ## Purpose
 
@@ -32,7 +32,7 @@ archives.
   for model/preview/profile identity. Generic Chroma canvas routing is shared, not individual HID routing.
 - Lighting Lab profile JSON, capability-aware portable export, and native Synapse profile support
   where the adapter can prove import/readback.
-- 57 focused Node tests and 66 isolated browser checks pass. These are software checks; they
+- 59 focused Node tests and 66 isolated browser checks pass. These are software checks; they
   do not prove every physical keyboard, Synapse state, or portable target.
 
 ## Required local prerequisites
