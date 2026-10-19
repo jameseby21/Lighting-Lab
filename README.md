@@ -27,7 +27,7 @@ server there or a supported portable preset export to affect that computer's har
 
 ## First-run product path
 
-The homepage now starts with three local-only steps: pick a recognizable preset, test a reaction in the browser, then focus **Apply** only when the user is ready to affect hardware. It is dismissible and its progress remains only in that browser's local storage. The gallery includes twelve one-click starting points, including Aurora, Radar Sweep, and Prism Flow. This deliberately improves time-to-first-preview without pretending that a preview proves device control.
+The homepage now starts with three local-only steps: pick a recognizable preset, test a reaction in the browser, then focus **Apply** only when the user is ready to affect hardware. It is dismissible and its progress remains only in that browser's local storage. The gallery includes twelve one-click starting points, including Aurora, Radar Sweep, and Prism Flow. This deliberately improves time-to-first-preview without pretending that a preview proves device control. A visible readiness check distinguishes the preview, controller delivery, and a human-confirmed physical lighting change. **Copy Share Link** keeps a compact setup recipe in the URL fragment; opening it only restores a preview and never applies hardware settings.
 
 ## Development chunks
 

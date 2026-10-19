@@ -54,6 +54,7 @@ async function main(){
       check(!byId('quickstart').hidden&&document.querySelectorAll('#preset-gallery button').length===12,'first-run guide and twelve click-only presets render');
       byId('onboarding-starter').click();check(configuration().effect==='rainbow-road'&&configuration().feedback==='ripple','starter guide applies a complete gallery preset');
       byId('onboarding-test').click();check(document.activeElement===byId('test-typing')&&JSON.parse(localStorage.getItem('lighting-lab-onboarding-v1')).test,'starter guide opens a safe preview reaction test');
+      const shared=createShareLink(configuration());check(readShareLink(new URL(shared).hash).effect===configuration().effect&&shared.includes('#lighting-lab='),'share links round-trip the preview recipe without applying it');check(document.querySelector('[data-readiness="preview"]').dataset.state==='ready'&&document.querySelector('[data-readiness="physical"]').dataset.state==='pending','readiness separates preview from unconfirmed physical lights');
       change('selection-mode','anchor');const q=document.querySelector('[data-id="Q"]'),one=document.querySelector('[data-id="1"]'),num=document.querySelector('[data-id="NUM_1"]');
       check(q&&one&&num&&one!==num,'main numerals and numpad keys have unique identities');
       const main=q.getBoundingClientRect(),pad=num.getBoundingClientRect();check(pad.left>main.right&&pad.top<main.top+200,'numpad stays beside main cluster');

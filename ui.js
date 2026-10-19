@@ -67,6 +67,10 @@ function configuration() {
 function words() { return $('words').value.split(',').map(word=>word.trim()).filter(Boolean); }
 function setStatus(id,message,state='') { $(id).textContent=message;$(id).dataset.state=state; }
 function persist() { try { localStorage.setItem(STORAGE_KEY,JSON.stringify(configuration())); } catch { /* Storage-disabled previews still work. */ } }
+/** A share link is a browser-only recipe: loading it restores the preview but never contacts hardware. */
+function createShareLink(setup,base=location.href){const bytes=new TextEncoder().encode(JSON.stringify(setup));if(bytes.length>6000)throw Error('This setup is too large for a reliable share link. Export Setup JSON instead.');let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);const url=new URL(base);url.hash=`lighting-lab=${btoa(binary)}`;return url.href;}
+function readShareLink(hash=location.hash){const encoded=new URLSearchParams(String(hash).replace(/^#/,'')).get('lighting-lab');if(!encoded)return null;try{const binary=atob(encoded),bytes=Uint8Array.from(binary,character=>character.charCodeAt(0));const setup=JSON.parse(new TextDecoder().decode(bytes));if(!setup||typeof setup!=='object'||!Array.isArray(setup.anchors))throw Error('missing anchors');return setup;}catch{throw Error('This Lighting Lab share link is incomplete or invalid.');}}
+async function copyText(value){if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}const field=document.createElement('textarea');field.value=value;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand?.('copy')===true;field.remove();return copied;}
 
 /** Restore saved editor state without inferring that an imported layout supports physical RGB. */
 function restoreSetup(data) {
@@ -157,8 +161,9 @@ function markOnboarding(step){try{const next={...onboardingState(),[step]:true};
 function renderOnboarding(){const panel=$('quickstart');if(!panel)return;const state=onboardingState();panel.hidden=state.dismissed===true;if(panel.hidden)return;for(const item of panel.querySelectorAll('[data-onboarding-step]'))item.dataset.complete=String(Boolean(state[item.dataset.onboardingStep]));const completed=['preset','test','apply'].filter(step=>state[step]).length;$('quickstart-status').textContent=completed===3?'You are ready to save a profile or keep customizing.':`${completed} of 3 complete. The preview stays local until you choose Apply.`;}
 /** Apply a gallery choice through the same state path as the advanced controls. */
 function choosePreset(preset){$('background').value=preset.effect;$('feedback').value=preset.feedback;groupSettings.background.dynamic=preset.effect==='ghost'||preset.effect==='solid'||preset.effect==='subtle-keywords'?'none':preset.effect;groupSettings.background.base=preset.effect==='solid'?'static':'off';groupSettings.background.reaction=preset.feedback;$('minimalist').checked=Boolean(preset.minimalist);markOnboarding('preset');changed(false);}
+function renderReadiness(){const states={preview:{state:'ready',text:'The browser preview is ready.'},controller:providerAvailable?{state:'ready',text:'The selected controller can receive a request.'}:{state:'problem',text:'No controllable provider is available yet.'},physical:physicalConfirmed?{state:'ready',text:'A person confirmed the current provider changed the lights.'}:{state:'pending',text:'Awaiting a physical confirmation after Apply.'}};for(const [name,detail]of Object.entries(states)){const item=document.querySelector(`[data-readiness="${name}"]`);item.dataset.state=detail.state;item.querySelector('span').textContent=detail.text;}$('readiness-action').textContent=physicalConfirmed?'Open saved profiles':'Review Apply';}
 function renderDetails() {
-  renderGroupEditor();renderOnboarding();
+  renderGroupEditor();renderOnboarding();renderReadiness();
   const pinned=layout.keys.filter(key=>anchors.has(key.id)||protectedAnchors.has(key.id)).length;
   $('layer-warning').textContent=[$('minimalist').checked?'Keypress Only is on: the background is deliberately dark.':'',pinned?`${pinned} of ${layout.keys.length} keys have fixed colors; the background appears on the remaining ${layout.keys.length-pinned}. Clear color anchors to expose more of the effect.`:'','Keyword reactions sit above their fixed colors unless you explicitly protect them.'].filter(Boolean).join(' ');
   $('issue-status').textContent=brokenKeys.size?`Reported unresponsive: ${[...brokenKeys].join(', ')}. These keys remain in the layout.`:'No unresponsive keys recorded.';
@@ -220,7 +225,7 @@ async function refreshProviderStatus() {
     if(deviceStatus.numpadDecimal){const info=deviceStatus.numpadDecimal;$('hardware-guidance').textContent=`${info.key}: ${info.state}. ${(info.checks||[]).join('; ')}. Workaround: ${info.workaround||'test another numpad key remapping.'}`;}
     if(rejected&&$('live').checked){$('live').checked=false;pendingSelection=null;clearTimeout(liveUpdateTimer);persist();}
     if(liveProviderAvailable&&!wasLiveAvailable)queueLiveUpdate(true);
-  }catch(error){serverAvailable=false;providerAvailable=false;$('connection-label').textContent='Preview only';$('connection-dot').dataset.state='problem';setStatus('device-status',`No local server connection. Run node server.cjs from the project folder. ${error.message}`,'problem');}
+  }catch(error){serverAvailable=false;providerAvailable=false;physicalConfirmed=false;$('connection-label').textContent='Preview only';$('connection-dot').dataset.state='problem';setStatus('device-status',`No local server connection. Run node server.cjs from the project folder. ${error.message}`,'problem');renderReadiness();}
   refreshExportCapabilities();
 }
 
@@ -271,7 +276,7 @@ $('onboarding-dismiss').onclick=()=>{try{localStorage.setItem(ONBOARDING_KEY,JSO
 K.alternatives.forEach((candidate,index)=>{const option=document.createElement('option');option.value=index;option.textContent=`${index===0?'Noob Deterrent':`Option ${index}`} · ${candidate.join(' / ')}`;$('candidate').append(option);});
 $('words').value=K.alternatives[0].join(', ');
 $('background').value='rainbow-road';
-try{const saved=localStorage.getItem(STORAGE_KEY);if(saved)restoreSetup(JSON.parse(saved));else{const legacyEffect=localStorage.getItem('lighting-lab-effect');if([...$('background').options].some(option=>option.value===legacyEffect)){$('background').value=legacyEffect;groupSettings.background.dynamic=legacyEffect==='ghost'||legacyEffect==='solid'||legacyEffect==='subtle-keywords'?'none':legacyEffect;groupSettings.background.base=legacyEffect==='solid'?'static':'off';}}}catch(error){setStatus('apply-status',`Saved setup could not be restored: ${error.message}`,'problem');}
+try{const shared=readShareLink();if(shared){restoreSetup(shared);setStatus('apply-status','Shared setup loaded into the preview. Review it, then choose Apply yourself if you want hardware changes.','ready');}else{const saved=localStorage.getItem(STORAGE_KEY);if(saved)restoreSetup(JSON.parse(saved));else{const legacyEffect=localStorage.getItem('lighting-lab-effect');if([...$('background').options].some(option=>option.value===legacyEffect)){$('background').value=legacyEffect;groupSettings.background.dynamic=legacyEffect==='ghost'||legacyEffect==='solid'||legacyEffect==='subtle-keywords'?'none':legacyEffect;groupSettings.background.base=legacyEffect==='solid'?'static':'off';}}}}catch(error){setStatus('apply-status',`Saved setup could not be restored: ${error.message}`,'problem');}
 
 $('candidate').onchange=()=>{$('words').value=K.alternatives[Number($('candidate').value)].join(', ');arrange();};
 $('words').oninput=()=>{renderDetails();persist();};$('reset').onclick=arrange;
@@ -294,6 +299,8 @@ $('apply').onclick=()=>{
 };
 $('preview-apply').onclick=()=>$('apply').click();
 $('save-json').onclick=saveSetup;
+$('share-link').onclick=async()=>{try{const link=createShareLink(configuration());const copied=await copyText(link);setStatus('profile-status',copied?'Share link copied. Opening it restores this preview only; the recipient chooses whether to Apply.':'Could not copy this link. Export Setup JSON instead.',copied?'ready':'problem');}catch(error){setStatus('profile-status',error.message,'problem');}};
+$('readiness-action').onclick=()=>{if(physicalConfirmed){$('saved-profiles').focus();return;}$('apply').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});$('apply').focus();};
 $('export-target').onchange=()=>{$('accept-approximation').checked=false;refreshExportCapabilities();};
 $('import-setup').onchange=async event=>{try{restoreSetup(JSON.parse(await event.target.files[0].text()));changed();setStatus('apply-status','Setup loaded. All settings and key selections restored.','ready');}catch(error){setStatus('apply-status',error.message,'problem');}finally{event.target.value='';}};
 $('accept-approximation').onchange=renderExportCapability;
