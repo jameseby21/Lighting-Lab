@@ -10,6 +10,7 @@
 5. Keep Live changes enabled for immediate Chroma writes. Use Apply to keyboard to force the exact
    preview when live edits are paused or after changing provider state.
 6. Save as Profile stores an editable controller profile. Export Setup JSON stores a portable recipe.
+7. Open **App profiles** to connect an explicitly named executable (for example Code.exe) to one saved Lighting Lab profile. Rules are evaluated top-to-bottom; choose **In front** or **Running**, set the wait, then use **Check now** before relying on automatic switching.
 
 Live Chroma effects are temporary and require the server to remain running. A successful controller
 acknowledgement is not visual confirmation; use the physical confirmation controls after Apply.

@@ -74,6 +74,12 @@ Passing a software test does not close a repeatedly reported physical-lighting d
   On the current BlackWidow Elite, a generated solid-magenta profile was imported, selected with
   parent-combo readback, and physically confirmed; the original profile was then reselected.
   Other native applications are not yet implemented. Local-template support is not a clean-clone claim.
+- **App Profiles:** stores ordered local rules that point to existing named Lighting Lab profiles. On
+  Windows, the local server checks only the executable basenames in enabled rules, and may select a
+  matching profile after the configured wait when the app is running or in front. It does not retain
+  typed input, window titles, screenshots, or a general process list. The current Chroma transition
+  occurs as the chosen profile activates; the saved transition value is reserved for compatible
+  providers. App rules leave the current lighting unchanged when no rule matches.
 - **Export Setup JSON:** downloads the editable recipe. It is separate from applying/saving a
   controller profile and does not write onboard memory.
 - **Download .exe / Auto:** exports a small Windows preset player. It detects a present Razer
