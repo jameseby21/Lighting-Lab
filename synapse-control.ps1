@@ -66,7 +66,14 @@ if($Action -in @('Inspect','Repair')){
   $windowBounds=$window.Current.BoundingRectangle
   $effectExpander=Descendants $window | Where-Object {$_.Current.AutomationId -eq 'ExpanderButton' -and -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Left -lt ($windowBounds.Left+300)} | Select-Object -First 1
   if($effectExpander){$effectToggle=$null;if($effectExpander.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$effectToggle) -and $effectToggle.Current.ToggleState -eq [System.Windows.Automation.ToggleState]::On){$effectToggle.Toggle();Start-Sleep -Milliseconds 200}}
-  Activate (Descendants $window | Where-Object {$_.Current.Name -eq 'CONNECT' -and $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::TabItem}|Select-Object -First 1)
+  $manageApps=ById $window 'btnChromaApp'
+  if($manageApps){
+   # Synapse 3 exposes Chroma Apps as a scoped management button on the active device page.
+   # Selecting CONNECT alone leaves that panel closed, even when the app currently owns lighting.
+   Activate $manageApps
+  }else{
+   Activate (Descendants $window | Where-Object {$_.Current.Name -eq 'CONNECT' -and $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::TabItem}|Select-Object -First 1)
+  }
  }
  $panel=Wait-For {ById $window 'ChromaApps'} 'the Connect Apps panel'
  $close=Descendants $window | Where-Object {$_.Current.Name -eq 'CLOSE' -and $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button}|Select-Object -First 1

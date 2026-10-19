@@ -110,7 +110,7 @@ build evidence belong in ignored `.artifacts/lighting-lab/`; raw keystrokes are 
 With the server running, `node tests/check-download.cjs` checks the actual
 compiler/download endpoint without executing the downloaded preset. The read-only status check
 is `node tests/check-live.cjs`; its explicit `--exercise` option temporarily
-changes real Chroma lighting, verifies accepted frames, then releases/restores the session.
+changes real Chroma lighting across every supported effect, reaction, and layered-group path, verifies accepted frames, then releases/restores the session. `node tests/check-connect.cjs` reads Synapse's actual Chroma Apps panel and verifies the registered app is listed and enabled without writing RGB.
 `node tests/check-connect.cjs` checks the actual Synapse Connect controls and
 exact app enablement, without writing RGB. Mouse-sharing overlays can block pointer navigation;
 the helper uses control selection where supported and stops rather than clicking another process.

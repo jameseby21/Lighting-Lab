@@ -279,4 +279,7 @@ test('native import finds the real named Studio tab before requiring Studio cont
   assert.match(source,/effectToggle\.Current\.ToggleState -eq \[System\.Windows\.Automation\.ToggleState\]::On/);
   const adapter=fs.readFileSync(path.resolve(__dirname,'../synapse-profile.cjs'),'utf8');
   assert(adapter.includes("'-Action','Select','-ProfileName',profile.name"));
+  const synapseControl=fs.readFileSync(path.resolve(__dirname,'../synapse-control.ps1'),'utf8');
+  assert(synapseControl.includes("ById $window 'btnChromaApp'"));
+  assert(synapseControl.includes('Selecting CONNECT alone leaves that panel closed'));
 });
