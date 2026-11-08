@@ -1,0 +1,78 @@
+flowchart LR
+  subgraph HOST["Server PC: Windows, keyboard attached by USB"]
+    direction TB
+    LAUNCH["Start Lighting Lab.cmd<br/>Windows batch launcher"]
+    subgraph BROWSER["Browser on the server PC: Edge / Chrome"]
+      UI["index.html + ui.js + core.js<br/>effects.js + layout-guide.js<br/>vanilla JS, no build step"]
+      LS[("localStorage<br/>setup, onboarding, feedback")]
+    end
+    SERVER["server.cjs<br/>Node.js 22+ node:http server<br/>port 4318, bind 0.0.0.0"]
+    subgraph MODULES["Server modules: CommonJS"]
+      CHROMA["providers/chroma-sdk.cjs<br/>Chroma REST client + frame loop"]
+      DETECT["device-profile.cjs<br/>keyboard identity via Get-PnpDevice"]
+      STORES["profiles.cjs, app-profiles.cjs<br/>control-verification.cjs"]
+      EXPORT["export.cjs<br/>preset .exe builder"]
+      NATIVE["synapse-profile.cjs<br/>native Synapse profile adapter"]
+    end
+    subgraph PS["Windows PowerShell helpers"]
+      GI["global-input.ps1<br/>user32 keyboard hook"]
+      APM["app-profile-monitor.ps1<br/>running / foreground .exe check"]
+      SC["synapse-control.ps1<br/>UI Automation of Synapse"]
+      SNP["save-native-profile.ps1<br/>build .ChromaEffects archive"]
+      RC["restart-chroma.ps1<br/>admin service restart"]
+    end
+    subgraph RAZER["Razer software, installed separately"]
+      REST["Razer Chroma SDK REST<br/>localhost:54235"]
+      SYN["Razer Synapse 3<br/>Studio + Chroma Apps"]
+    end
+    CSC["csc.exe<br/>.NET Framework 4.x compiler"]
+    STATE[(".artifacts/lighting-lab/<br/>audit.jsonl, profiles/, app rules,<br/>control-verification.json")]
+    TEMPL[("LIGHTING_LAB_NATIVE_DIRECTORY<br/>private Synapse templates<br/>not in repo")]
+  end
+  KB["Razer keyboard + optional mouse"]
+  PHONE["Phone or other PC browser<br/>same LAN, unverified"]
+  subgraph TARGET["Destination Windows PC"]
+    EXEA["Lighting-Lab-Auto .exe<br/>ChromaPreset.cs + RzChromaSDK64.dll"]
+    EXEB["AL65 runner .exe<br/>PresetRunner.cs, hid.dll"]
+    AL65["YUNZII AL65<br/>wired, VIA HID"]
+    TKB["Razer keyboard on that PC"]
+  end
+  subgraph DEV["Build, test, hosting"]
+    TESTS["node --test tests/*.test.cjs, mocked providers<br/>+ tests/check-*.cjs against a live server"]
+    BCHK["tests/browser-check.cjs<br/>headless Edge via DevTools protocol"]
+    GH["GitHub jameseby21/Lighting-Lab<br/>source + issue drafts, no CI"]
+  end
+
+  LAUNCH -->|starts| SERVER
+  LAUNCH -->|opens localhost:4318| UI
+  UI <-->|"HTTP JSON /api/*"| SERVER
+  PHONE -->|"HTTP :4318"| SERVER
+  UI --> LS
+  SERVER --> CHROMA
+  SERVER --> DETECT
+  SERVER --> STORES
+  SERVER --> EXPORT
+  SERVER --> NATIVE
+  CHROMA -->|"REST frames, heartbeat"| REST
+  REST -->|lighting| KB
+  SERVER -->|spawn| GI
+  GI -->|key-down IDs on stdout| SERVER
+  SERVER -->|execFile| APM
+  SERVER -->|execFile| SC
+  SC -->|UI Automation| SYN
+  NATIVE -->|execFile| SNP
+  TEMPL --> SNP
+  SNP -->|archive import| SYN
+  SYN -->|saved profile| KB
+  RC -->|restart services| REST
+  STORES -->|JSON files| STATE
+  SERVER -->|audit lines| STATE
+  EXPORT -->|C# sources + preset.json| CSC
+  CSC -->|.exe download| UI
+  UI -.->|user copies .exe| EXEA
+  UI -.->|user copies .exe| EXEB
+  EXEA -->|"Chroma native SDK"| TKB
+  EXEB -->|VIA HID report| AL65
+  UI -.->|prefilled issue link| GH
+  TESTS -.->|HTTP checks| SERVER
+  BCHK -.->|fixture server| UI

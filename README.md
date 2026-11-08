@@ -47,6 +47,8 @@ The homepage now starts with three local-only steps: pick a recognizable preset,
 Each chunk needs executable evidence, followed by target-device/user acceptance where applicable.
 Passing a software test does not close a repeatedly reported physical-lighting defect.
 
+Architecture map (infrastructure and functionality diagrams): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Control and export boundaries
 
 - **Live Chroma:** Razer SDK must be available on the server PC. Background and reactions are
