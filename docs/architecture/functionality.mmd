@@ -1,0 +1,61 @@
+flowchart TB
+  subgraph START["Getting started"]
+    QS["First-run guide, 3 steps<br/>index.html #quickstart, ui.js"]
+    GAL["Preset gallery, 12 looks<br/>ui.js + effects.js"]
+    MODEL["Keyboard model view, 17 models<br/>core.js modelCatalog"]
+    IDL["Identify My Layout<br/>layout-guide.js"]
+    DEVSEL["Detect and pick keyboard<br/>GET /api/device, device-profile.cjs"]
+  end
+  subgraph EDIT["Edit in the browser"]
+    GROUPS["Anchor / Background / Orientation groups<br/>ui.js, lighting-domain.cjs"]
+    LAYERS["Base color + effect + reaction per group<br/>effects.js, core.js renderer"]
+    TESTR["Test reactions in preview<br/>ui.js"]
+    GLOBAL["Global key feedback<br/>POST /api/input, global-input.ps1"]
+    GEOM["Customize view geometry<br/>ui.js #edit-geometry"]
+    CAPS["Keycap word planner<br/>ui.js, effects.js"]
+    ISSUES["Key Issues: broken-key aliases<br/>ui.js"]
+  end
+  subgraph CONTROL["Drive the hardware"]
+    LIVE["Live changes<br/>POST /api/apply, chroma-sdk.cjs"]
+    APPLY["Apply, forced fresh session<br/>POST /api/apply"]
+    MOUSE["Mouse sync<br/>chroma-sdk.cjs mouse frame"]
+    CONFIRM["Did the lights change?<br/>POST /api/control-verification"]
+    REPAIR["Retry Chroma connection<br/>POST /api/repair, synapse-control.ps1"]
+    REL["Release control<br/>POST /api/release"]
+    STATUS["Ready check + diagnostics<br/>GET /api/status, /api/diagnostics"]
+  end
+  subgraph KEEP["Save, share, automate"]
+    PROF["Save / load profile<br/>/api/profiles, profiles.cjs"]
+    NATIVEP["Save into Synapse Studio<br/>synapse-profile.cjs, save-native-profile.ps1"]
+    APPP["App profiles: switch by running app<br/>/api/app-profiles, app-profiles.cjs"]
+    JSON["Export / import setup JSON<br/>ui.js, browser only"]
+    SHARE["Copy share link, URL fragment<br/>ui.js readShareLink"]
+    FB["Feedback: local, download, GitHub issue draft<br/>ui.js"]
+  end
+  subgraph EXPORTS["Portable export"]
+    CAP["Export capability check<br/>GET /api/export/capabilities"]
+    EXE["Download .exe, Auto for Razer<br/>export.cjs, portable/ChromaPreset.cs"]
+    AL["AL65 firmware preset<br/>portable/PresetRunner.cs, al65-definition.json"]
+  end
+
+  QS --> GAL --> GROUPS
+  DEVSEL --> MODEL
+  MODEL --> GROUPS
+  IDL --> MODEL
+  GROUPS --> LAYERS
+  LAYERS --> TESTR
+  TESTR --> GLOBAL
+  LAYERS --> LIVE
+  LAYERS --> APPLY
+  APPLY --> CONFIRM
+  CONFIRM -->|unchanged| REPAIR
+  LIVE --> MOUSE
+  LAYERS --> PROF
+  PROF --> NATIVEP
+  PROF --> APPP
+  LAYERS --> JSON
+  LAYERS --> SHARE
+  CONFIRM -->|confirmed| FB
+  LAYERS --> CAP
+  CAP --> EXE
+  CAP --> AL
