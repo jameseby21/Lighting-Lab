@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter></defs>
+<rect x="8" y="8" width="240" height="240" rx="56" fill="#22202e"/>
+<rect x="24" y="18" width="208" height="200" rx="42" fill="#15141c"/>
+<g filter="url(#glow)" opacity="0.85"><rect x="62" y="62" width="58" height="58" rx="12" fill="#7c5cff"/><rect x="136" y="62" width="58" height="58" rx="12" fill="#ff7ad9"/><rect x="62" y="136" width="58" height="58" rx="12" fill="#5fd6e8"/></g>
+<rect x="62" y="62" width="58" height="58" rx="12" fill="#8f73ff"/>
+<rect x="136" y="62" width="58" height="58" rx="12" fill="#ff7ad9"/>
+<rect x="62" y="136" width="58" height="58" rx="12" fill="#5fd6e8"/>
+<rect x="136" y="136" width="58" height="58" rx="12" fill="#2b2938" stroke="#45425a" stroke-width="3"/>
+<circle cx="165" cy="165" r="11" fill="#e3262f"/>
+</svg>

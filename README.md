@@ -1,164 +1,165 @@
-# Jeby Lighting Lab
+# Lighting Lab
 
-Local keyboard lighting editor, preset gallery, physical keyboard preview, and capability-aware
-preset export. The runnable source is now tracked here. Private historical profiles, logs, and
-backups remain in ignored `docs/background/keyboard-layout/`.
+**Make your keyboard look exactly how you want, in about two minutes.**
+Lighting Lab finds your keyboard, shows it on screen key-for-key, and lets you paint it with live effects:
+rainbows, Matrix rain, ripples that spread out from every key you press, keys that glow only when you type.
+With a Razer keyboard connected, every click shows up on the real keys instantly. It can even switch looks
+automatically when you open an app.
 
-## Run
+> Local only: no account, no cloud, no install wizard. It runs on your PC and you control it from your browser.
 
-On Windows, double-click **Start Lighting Lab.cmd**. It checks for Node, opens the browser after the local server starts, and leaves the terminal visible so a startup error is readable.
+![Lighting Lab editor](docs/images/editor.png)
 
-Or run from the repository root in Windows PowerShell:
+## What it does
 
-```powershell
-node server.cjs
-```
+- **Simple first, everything when you want it:** the page opens in **Simple** mode (your keyboard, live, plus
+  the looks gallery). **All controls** (top right, remembered per browser) adds painting, layered effects,
+  profiles, and exports.
+- **12 one-click looks to start from:** Rainbow Road, Rainbow Ripple, Matrix, Aurora, Radar Sweep, Prism Flow,
+  Stars & Stripes, After Dark, and more. Then make any of them your own.
+- **Three key groups, each with its own lighting:** paint *anchor* keys (the ones you want to stand out),
+  *orientation* keys (landmarks like Esc or WASD), and the *background*. The **What each group does** grid gives
+  every group its own base color, motion and key-press reaction, each with a strength, plus **Protect** (ignore
+  reactions started in other groups). Edit one group or link several at once. Searchable, described choices:
+  ripple, waterfall, blue flame, sparkle, comet trail, Matrix rain, aurora, and more.
+- **Live on real hardware:** with Live changes on, edits stream to a Razer Chroma keyboard as you make them.
+  You can sync a compatible Razer mouse to the background.
+- **App Profiles:** "when Visual Studio Code is in front, use *Code Focus*; when Valorant is full screen, use
+  *WASD Arena*; from 11 pm to 7 am, use *Night*; everything else, *My Lighting*." Rules are checked top to bottom,
+  switches **crossfade** smoothly, and only the app names you list are watched.
+- **Your exact keyboard:** detects the connected model (e.g. Razer BlackWidow Elite, Ornata, Cynosa,
+  YUNZII AL65) and draws its real layout, including the numpad, media keys, and ISO Enter. Not detected? A
+  30-second guided layout check works out full-size / TKL / 75% / 65% / 60% from a few key presses.
+- **Take it with you:** save named profiles, copy a share link, export the setup as JSON, or download a small
+  `.exe` that plays your look on another Windows PC without installing anything.
 
-Open `http://localhost:4318`. Keep the terminal running. Node 22 or newer is required; there are
-no npm dependencies. The server prints detected IPv4 LAN URLs, but remote connectivity is not
-verified by printing an address. `LIGHTING_LAB_HOST` and `LIGHTING_LAB_PORT` override the bind.
+## Get started (about 2 minutes)
 
-The default bind remains `0.0.0.0` for the existing phone/LAN workflow. Firewall permissions are
-not changed by launching the app. The reported brother-PC timeout, unspecified `chromweb` error,
-and console 401 responses remain deferred. Their cause is unconfirmed; browser-extension,
-Synapse-authentication, and application errors must be distinguished by endpoint and timestamp.
+You need **Windows 10/11** and **Node.js 22 or newer**. For live lighting on real keys you also need a
+**Razer keyboard with Razer Synapse** installed (see [what works with what](#what-works-with-what)). Without
+it, everything still works in the on-screen preview.
 
-The desktop/phone browser controls the keyboard attached to the server computer. Opening this
-page from another PC does **not** give the server access to that PC's USB keyboard. Use the local
-server there or a supported portable preset export to affect that computer's hardware.
+1. **Install Node.js** (once). Open PowerShell and run:
+   ```powershell
+   winget install OpenJS.NodeJS.LTS
+   ```
+   (or download the LTS installer from [nodejs.org](https://nodejs.org)).
+2. **Get Lighting Lab.** Click **Code → Download ZIP** on GitHub and unzip it anywhere, or run
+   `git clone https://github.com/jameseby21/Lighting-Lab.git`. There's nothing to `npm install`: Lighting Lab
+   has zero dependencies.
+3. **Double-click `Start Lighting Lab.cmd`.** Your browser opens at <http://localhost:4318>. Keep the small
+   black window open; closing it stops Lighting Lab.
+4. **Pick a look** in *Find your frequency*. With Live changes on, your keyboard follows along.
+5. Answer the **"Did your physical keyboard change?"** check. That's how Lighting Lab learns that your keyboard
+   is really under its control, rather than just accepting requests.
 
-## First-run product path
+Prefer a terminal? `npm start` does the same as the double-click (`npm run start:lan` for phone access, below).
 
-The homepage now starts with three local-only steps: pick a recognizable preset, test a reaction in the browser, then focus **Apply** only when the user is ready to affect hardware. It is dismissible and its progress remains only in that browser's local storage. The gallery includes twelve one-click starting points, including Aurora, Radar Sweep, and Prism Flow. This deliberately improves time-to-first-preview without pretending that a preview proves device control. A visible readiness check distinguishes the preview, controller delivery, and a human-confirmed physical lighting change. **Copy Share Link** keeps a compact setup recipe in the URL fragment; opening it only restores a preview and never applies hardware settings. After a tester confirms visible lights, an optional next-step strip offers to save the working setup or record local feedback without interrupting editing. Feedback remains in browser storage by default; the tester may explicitly download it or open a prefilled GitHub issue draft. No feedback is uploaded automatically.
+**Keyboard didn't change?** In Razer Synapse, make sure **Chroma Apps / Chroma Connect** is turned on and
+"Jeby Lighting Lab" is allowed. Then press **Retry Chroma Connection** in Lighting Lab. Lights stuttering or
+fighting between two effects? Make sure only **one** Lighting Lab window is running. More fixes are in
+[Troubleshooting](docs/TROUBLESHOOTING.md).
 
-## Development chunks
+## Make it switch with your apps (App Profiles)
 
-1. Canonical physical switch identities, documented Chroma coordinates, full keyboard geometry,
-   model recognition/fallback, and regression coverage for the shifted Q/W mapping.
-2. One shared preview/device effect renderer, independently configurable Anchor/Background/
-   Orientation base, motion, and reaction layers; a single falling Matrix line with randomized
-   three-to-seven-row gaps; fading white reactions; and live edit serialization.
-3. Exact-target portable export with explicit capability limits, state backup/readback, and
-   standalone executable compilation/inspection. No firmware flashing or key remapping.
-4. Visual hierarchy, complete selectable keyboard, customization view, progressive disclosure,
-   persistence/import, responsive layout, and browser interaction checks.
-5. Integration checks, documentation, skill refinement, staged-source review, commit and push.
+![App Profiles](docs/images/app-profiles.png)
 
-Each chunk needs executable evidence, followed by target-device/user acceptance where applicable.
-Passing a software test does not close a repeatedly reported physical-lighting defect.
+1. Set up a look you like, open **All controls**, give it a name, and press **Save as Profile**.
+2. Open **App profiles** (top right) → **Find running apps** → **Use** next to the app (e.g. `Code.exe`), or press
+   one of the **+ app** chips under the rules.
+3. Choose when it applies: **In front** (that window is focused), **Running** (any time it's open),
+   **Full screen** (e.g. games), or **Time of day** (no app needed, e.g. 23:00–07:00). Pick the profile and press
+   **Add rule**. Conditions and profiles can be changed right in the table later.
+4. Optional: set **Everything else** to a default profile for when no rule matches (otherwise your lighting
+   simply stays as it is).
 
-## Control and export boundaries
+**Try it** chips show which rule would win for an app, using a live preview and without touching your keyboard;
+**Test** applies a rule's profile for real. Automatic switches **crossfade** over the time you set. Rules keep
+working after a reboot as soon as Lighting Lab is started again.
 
-- **Live Chroma:** Razer SDK must be available on the server PC. Background and reactions are
-  rendered continuously; settings changes reuse a session. Direct effects require the server to
-  keep running and do not survive shutdown. Global input is explicitly enabled and memory-only.
-  Transport success and visible control are tracked separately per keyboard/provider. If the owner
-  reports unchanged lights, automatic live writes pause while Apply remains available for retesting.
-  When Windows reports more than one keyboard, Lighting Lab lists each present identity and lets the
-  user choose the model, preview, and saved setup. Its current generic Chroma keyboard canvas does
-  not document per-device routing, so compatible keyboards may receive the same frame; the selector
-  never promises isolated physical control.
-- **Apply:** sends the current preview even with Live Changes off. It starts a fresh SDK session
-  and uses Razer's create/SetEffect path. Later live edits reuse that session. An acknowledgment
-  means the controller accepted the request; the page asks whether the physical lights changed.
-  Repair Connection opens Synapse and retries; Chroma Apps enablement/priority may still need attention.
-  Repair now reads the actual Connect panel, master switch, and exact registered app; it cannot
-  report successful navigation merely because the process launched. The vendor identity remains
-  `Jeby Lighting Lab` so the editor's shorter display name does not create a separate registration.
-- **Save as Profile:** saves a named, loadable record in the selected controller. Lighting Lab
-  preserves the full setup on this server. Native Synapse generation currently uses the local
-  BlackWidow Elite archive template for static/keyword colors and white Reactive only; custom
-  animations, mouse sync, and Ripple/Waterfall are explicitly rejected. Archive generation occurs
-  before releasing live control. Import success requires UI selection readback. If the vendor UI
-  cannot be automated, the page offers the actual `.ChromaEffects` archive for manual Studio import.
-  On the current BlackWidow Elite, a generated solid-magenta profile was imported, selected with
-  parent-combo readback, and physically confirmed; the original profile was then reselected.
-  Other native applications are not yet implemented. Local-template support is not a clean-clone claim.
-- **App Profiles:** stores ordered local rules that point to existing named Lighting Lab profiles. On
-  Windows, the local server checks only the executable basenames in enabled rules, and may select a
-  matching profile after the configured wait when the app is running or in front. It does not retain
-  typed input, window titles, screenshots, or a general process list. The current Chroma transition
-  occurs as the chosen profile activates; the saved transition value is reserved for compatible
-  providers. App rules leave the current lighting unchanged when no rule matches.
-- **Export Setup JSON:** downloads the editable recipe. It is separate from applying/saving a
-  controller profile and does not write onboard memory.
-- **Download .exe / Auto:** exports a small Windows preset player. It detects a present Razer
-  keyboard and uses the installed Chroma runtime, playing shared-renderer frames while open.
-  Reactions are opt-in; physical key identities stay in memory. Mouse sync is included when chosen.
-  Unknown brands fail clearly without guessed USB writes. A standalone file does not remove
-  Razer's runtime dependency or make a host-generated animation persist after the player closes.
-- **Portable AL65 preset:** applies documented whole-board firmware lighting via wired VIA HID.
-  This is an explicitly chosen approximation of the editor's layered effect. It cannot preserve
-  arbitrary keyword islands, orientation anchors, mouse sync, or white feedback overlays.
-  See [export research and limitations](docs/RESEARCH-EXPORT.md).
-- **Other devices:** a preview model is not a claim of a control protocol. Ornata variants must
-  distinguish per-key from zone lighting. No generic driverless arbitrary per-key RGB claim is made.
+## What works with what
 
-## Checks
+| Your hardware | Live lighting from the editor | Mouse sync | Saved profiles / App Profiles | Portable `.exe` |
+| --- | --- | --- | --- | --- |
+| Razer keyboard + Synapse (Chroma) | ✅ per-key, all effects | ✅ compatible Razer mice | ✅ | ✅ plays while open |
+| Razer Ornata V3 (10 zones) | ⚠️ zone hardware: single-key anchors and reactions can't be shown key by key | ✅ | ✅ | ✅ |
+| YUNZII AL65 (wired) | Preview only | — | Preview only | ✅ built-in firmware mode, saved to the keyboard |
+| Anything else (Logitech, Corsair, SteelSeries, unknown) | Preview + layout only | — | Preview only | Reports "unsupported" without sending anything |
 
-From the repository root:
+Lighting Lab never guesses USB commands for a keyboard it doesn't have a documented protocol for. If your
+brand isn't supported yet, the preview still shows exactly what a setup would look like.
 
-```powershell
-node --test tests/*.test.cjs
-node tests/browser-check.cjs
-node tests/build-portable.cjs
-node tests/build-native.cjs
-uv run ruff check .
-uv run mypy src
-uv run pytest
-```
+## Use it from your phone
 
-The native-build check requires this machine's ignored vendor exports and never imports its test
-archive. The browser check uses an isolated headless Microsoft Edge profile and mocked device responses.
-It does not run against a user's physical keyboard. Generated audit records, screenshots, and
-build evidence belong in ignored `.artifacts/lighting-lab/`; raw keystrokes are not logged.
+Run `npm run start:lan` (or `node server.cjs --open --lan`). The window prints a `LAN: http://192.168…`
+address that you can open on any phone or tablet on the same Wi-Fi. Windows may ask once whether to allow
+network access. The phone controls the keyboard plugged into **this** PC.
 
-With the server running, `node tests/check-download.cjs` checks the actual
-compiler/download endpoint without executing the downloaded preset. The read-only status check
-is `node tests/check-live.cjs`; its explicit `--exercise` option temporarily
-changes real Chroma lighting across every supported effect, reaction, and layered-group path, verifies accepted frames, then releases/restores the session. `node tests/check-connect.cjs` reads Synapse's actual Chroma Apps panel and verifies the registered app is listed and enabled without writing RGB.
-`node tests/check-connect.cjs` checks the actual Synapse Connect controls and
-exact app enablement, without writing RGB. Mouse-sharing overlays can block pointer navigation;
-the helper uses control selection where supported and stops rather than clicking another process.
-The importer identifies Studio by its visible tab name, handles Synapse's nested legacy chooser by
-verified native handles, and selects only a same-named item that exposes SelectionItem.
-The optional administrator script `restart-chroma.ps1 -IncludeSynapse` also
-refreshes Synapse's device bridge, logs service states, and restores the three services to Running.
+By default Lighting Lab listens only on this PC (`127.0.0.1`), so no firewall prompt appears and nobody else on
+your network can change your lights.
 
-## How to validate
+## Privacy
 
-On the Windows PC with the keyboard attached, start the server above. This does not flash firmware
-or install a startup service. The page's live switch controls a temporary RGB session.
+- Everything stays on your PC, under `.artifacts/lighting-lab/` in this folder. Nothing is uploaded.
+- **Global key feedback** (reactions while typing in other apps) is off by default. When on, it uses
+  *which physical key* was pressed, in memory only. Typed text and key history are never stored.
+- **App Profiles** checks only the app names in your rules, plus a one-time list of visible app names when
+  *you* press *Find running apps*. Window titles, command lines, and screenshots are never read.
+- Feedback stays in your browser unless you choose **Download feedback** or **Open GitHub draft**.
+- A local audit log (`audit.jsonl`, capped at about 2 MB) records actions and controller results for
+  troubleshooting. **Download diagnostics** shows you exactly what is in it.
 
-1. Check the detected model/source. Select the actual model manually if detection is unknown;
-   the choice should survive provider refresh. Inspect function/navigation/numpad keys and casing.
-2. Clear keyword selection, select Q/W/E/R/T individually, and verify those exact physical keys.
-   Test a main-row digit and its separate numpad digit.
-3. Select Matrix and Stripes. Matrix is one dropping green row, with a deterministic randomized
-   gap of three to seven rows before the next line; Stripes is one rising row that alternates red
-   and white. Then test
-   Rainbow Road and Chaos. Confirm minimalist darkens non-anchor backgrounds while reactions remain visible.
-4. Use Paint Anchor, Paint Background, Paint Orientation, or Test reactions above the board. For
-   each group choose base lighting, a dynamic effect, and a reaction independently. White fade sits
-   above its base color by default. Enable Global Key Feedback to test outside the browser. Ripple
-   expands and Waterfall progresses downward.
-   The group picker also exposes Chroma-style Static, Breathing, Fire, Spectrum Cycling, Starlight,
-   Wave, Reactive, and Ripple, plus Lighting Lab's Aurora, Radar Sweep, Prism Flow, Pulse, Sparkle,
-   and Comet Trail. They are rendered through the shared custom-frame engine while Lighting Lab runs.
-5. Turn Live Changes off, edit, then Apply. The physical effect should update. Turn Live Changes
-   on and edit again without clicking Apply. Use the physical confirmation/repair controls if needed.
-6. Save a named Lighting Lab profile, alter the effect, and Load Profile. Export/import JSON
-   separately. For supported native settings choose Synapse Studio and check that the actual profile
-   appears there; a saved archive without confirmed import is reported as pending.
-7. Use Identify My Layout at any time. Broken keys do not time out or imply a smaller board;
-   try the alternate guided key or confirm by sight. Key Issues stores unresponsive keys and optional
-   alternate lighting triggers. These aliases do not remap Windows typing or repair a switch.
-8. Choose Auto for a Razer portable player, or AL65 Firmware Mode with explicit whole-board
-   approximation consent for the brother's wired AL65. Check the resulting file on the destination
-   computer. Other brands, AL65 hardware operation, and power-cycle retention remain unverified.
-6. For the AL65 export, explicitly choose its built-in lighting approximation, download the EXE,
-   and run it on the Windows PC with the AL65 attached by cable. Follow its backup/restore
-   instructions. Verify the physical result, exit, and power-cycle the keyboard to test persistence.
+## Saving and sharing: which button does what
 
-The brother's preference over bundled software remains the product acceptance gate. LAN reachability,
-unknown keyboards, physical color, and AL65 firmware persistence are pending until directly tested.
+| Button | What it does | Where it goes |
+| --- | --- | --- |
+| **Apply** | Sends the current setup to the keyboard now, with a fresh controller session | Your keyboard |
+| **Live changes** (switch) | Keeps sending every edit automatically | Your keyboard |
+| **Save as Profile** | Saves a named, loadable setup (and activates it) | This PC |
+| **Copy Share Link** | Puts the whole setup in a link; opening it only loads the *preview* | Clipboard |
+| **Export / Import Setup JSON** | A file containing the complete setup | Your downloads |
+| **Download .exe** | A small preset player for another Windows PC | Your downloads |
+
+Live Chroma effects need Lighting Lab to keep running. Razer keyboards don't store custom per-key animations
+on the keyboard itself.
+
+## For developers
+
+- **How it fits together:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The browser editor (`ui.js`)
+  and the server (`server.cjs`) share one renderer (`effects.js`), so the preview and the hardware frame are
+  computed by the same code.
+- **Run the checks:**
+  ```powershell
+  npm test                 # unit + HTTP API tests with fake devices (never touches real lighting)
+  npm run test:browser     # real headless Edge against fixture providers; saves screenshots
+  npm run build:portable   # compiles the portable .exe with Windows' built-in C# compiler + self-test
+  npm run format           # Prettier (code only; prose is hand-wrapped)
+  ```
+  Hardware checks that *do* touch real devices are opt-in: `npm run check:live -- --exercise`,
+  `npm run check:connect`, `npm run check:download` (each needs a running server).
+- **Settings:** `LIGHTING_LAB_PORT` (default 4318), `LIGHTING_LAB_HOST` (default `127.0.0.1`; `--lan` uses
+  `0.0.0.0`), `LIGHTING_LAB_STATE` (state folder), `LIGHTING_LAB_ALLOWED_HOSTS` (extra host names allowed by
+  the DNS-rebinding guard), `LIGHTING_LAB_NATIVE_DIRECTORY` (optional Synapse templates; see
+  [docs/native](docs/native/README.md)).
+- **Measure it yourself:** `node tests/measure-matrix-cadence.cjs` (hardware frame timing against a fake Chroma),
+  `node tests/measure-preview-cadence.cjs` (preview timing in headless Edge), `node tests/capture-screens.cjs`.
+- **Design notes and evidence:** [DESIGN](docs/DESIGN.md), [export research](docs/RESEARCH-EXPORT.md),
+  [hardware validation record](docs/VALIDATION.md), and the October 2026 audit
+  ([dev log](docs/appforge/DEV-LOG.md), [issues log](docs/appforge/ISSUES-LOG.md)).
+- CI runs formatting, unit, browser, and portable-build checks on Windows for every push.
+
+## Honest limits
+
+- A green "Controller reachable" means Razer's software *accepted* a request. Only your eyes can confirm the
+  LEDs changed, which is why Lighting Lab asks.
+- With several Razer keyboards connected, Chroma's generic keyboard canvas reaches all of them. Choosing one
+  sets the model, preview, and saved setup, not separate per-device frames.
+- Native Synapse Studio profiles (optional) currently have a verified template for the BlackWidow Elite only.
+- The AL65 export is a whole-board firmware approximation and hasn't yet been tested on AL65 hardware. Power-
+  cycle persistence is unverified.
+
+## License
+
+[GPL-3.0](LICENSE). Made by jeby Labs. Feedback and bug reports are welcome via
+[GitHub issues](https://github.com/jameseby21/Lighting-Lab/issues); the in-app **Leave feedback** button can
+draft one for you.

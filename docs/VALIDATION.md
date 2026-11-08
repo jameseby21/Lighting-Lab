@@ -1,3 +1,7 @@
+> **Historical validation record (October 2026, pre-audit).** Commands such as `node --test apps/lighting-lab/…`
+> and `uv run pytest` refer to the old monorepo. The current commands are in the [README](../README.md#for-developers).
+> The audit pass that followed is logged in [appforge/DEV-LOG.md](appforge/DEV-LOG.md).
+
 # Validation record: 2026-10-18
 
 The owner confirmed that the physical keyboard and mouse retained their original lighting through

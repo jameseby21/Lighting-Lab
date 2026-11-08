@@ -1,0 +1,40 @@
+# Runs on every push and pull request. Windows is the real target (Chroma SDK, PowerShell helpers,
+# the .NET Framework C# compiler used by "Download .exe"), so CI runs there too.
+# No job touches real RGB hardware: device I/O is faked in the unit tests and the browser test.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Unit and API tests (fake devices)
+        run: npm test
+
+      - name: Real-browser acceptance check (headless Edge, fixture provider)
+        run: npm run test:browser
+
+      - name: Portable preset compile + self-test (no HID or SDK access)
+        run: npm run build:portable
+
+      - name: Keep screenshots from the browser check
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-screenshots
+          path: .artifacts/browser/*.png
+          if-no-files-found: ignore

@@ -1,0 +1,13 @@
+# Normalize everything to LF in the repository so diffs stay clean across Windows/macOS/Linux clones.
+* text=auto eol=lf
+
+# Windows-only launchers and helpers must be CRLF on disk: cmd.exe can mis-parse LF batch files,
+# and these files are executed directly by Windows, never by a POSIX shell.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary / evidence formats are never touched.
+*.png binary
+*.exe binary
+*.ChromaEffects binary

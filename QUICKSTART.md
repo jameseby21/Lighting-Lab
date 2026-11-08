@@ -1,16 +1,17 @@
-# Lighting Lab quick start`r`n`r`nOn Windows, double-click **Start Lighting Lab.cmd** to start the local server and open the editor. Keep its terminal window open while you use Lighting Lab.
+# Lighting Lab: quick start
 
-1. Open `http://localhost:4318`. If PowerShell says port 4318 is already in use, Lighting Lab is
-   already running; use the browser page instead of starting a second server.
-2. Check the connected keyboard list and the preview model. A list item identifies the editor's
-   model/profile target; the current generic Chroma SDK canvas is shared across compatible keyboards.
-3. Choose Paint Anchor, Paint Background, or Paint Orientation, then click switches in the preview.
-4. For every group choose a base color, dynamic effect, and reaction. Test reactions by clicking a
-   switch in Test reactions mode or by typing in the test field.
-5. Keep Live changes enabled for immediate Chroma writes. Use Apply to keyboard to force the exact
-   preview when live edits are paused or after changing provider state.
-6. Save as Profile stores an editable controller profile. Export Setup JSON stores a portable recipe.
-7. Open **App profiles** to connect an explicitly named executable (for example Code.exe) to one saved Lighting Lab profile. Rules are evaluated top-to-bottom; choose **In front** or **Running**, set the wait, then use **Check now** before relying on automatic switching.
+1. Install **Node.js 22+** once: `winget install OpenJS.NodeJS.LTS` (or the LTS installer from nodejs.org).
+2. Double-click **Start Lighting Lab.cmd**. The editor opens at <http://localhost:4318>.
+   Keep the black window open; closing it stops Lighting Lab. Launching it twice just reopens the page.
+3. Click a look under **Find your frequency**. With **Live changes** on, a connected Razer keyboard follows.
+4. Answer **Did your physical keyboard change?** If it didn't, see [Troubleshooting](docs/TROUBLESHOOTING.md).
+5. Make it yours:
+   - Choose **Paint anchor / background / orientation** and click keys on the picture to put them in a group.
+   - In **Choose what each key group does**, give each group a base color, a motion effect, and a reaction.
+   - Try reactions by clicking keys in **Test reactions** mode or typing in **Test typing**.
+6. **Save as Profile** to keep it. **Copy Share Link** sends it to a friend (it opens as a preview only).
+7. **App profiles** (top right): **Find running apps** → **Use** → pick **In front** or **Running** → choose a
+   saved profile → **Add rule**. The first matching rule wins; nothing changes when no rule matches.
 
-Live Chroma effects are temporary and require the server to remain running. A successful controller
-acknowledgement is not visual confirmation; use the physical confirmation controls after Apply.
+Live Chroma effects run while Lighting Lab is open. "Controller reachable" means Razer accepted the request;
+your confirmation is what proves the LEDs changed.

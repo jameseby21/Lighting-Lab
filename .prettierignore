@@ -1,0 +1,8 @@
+# Generated or evidence files are kept byte-for-byte; formatting them would change what they prove.
+.artifacts/
+runtime/
+node_modules/
+portable/al65-definition.json
+LICENSE
+# Prose is hand-wrapped; only code is machine-formatted.
+*.md

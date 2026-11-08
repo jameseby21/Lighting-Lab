@@ -1,4 +1,8 @@
-﻿# Lighting Lab standalone repository handoff
+> **Historical document.** This was the plan for moving Lighting Lab out of the Plantriloquist monorepo into
+> its own repository. That move is complete (commit `f78afc9`); paths like `apps/lighting-lab/` no longer exist.
+> Kept for the AppForge record. For the current layout see [ARCHITECTURE.md](../ARCHITECTURE.md).
+
+# Lighting Lab standalone repository handoff
 
 ## Purpose
 

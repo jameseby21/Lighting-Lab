@@ -1,53 +1,876 @@
 <!doctype html>
-<!-- A model preview never implies hardware compatibility; exports identify their actual capability. -->
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101219"><title>Lighting Lab · jeby Labs</title><link rel="stylesheet" href="styles.css"></head>
-<body>
-<a class="skip-link" href="#workspace">Skip to keyboard editor</a>
-<header class="site-header"><a class="identity" href="./" aria-label="Lighting Lab home"><span class="mark" aria-hidden="true">ll<span>•</span></span><span><strong>Lighting Lab</strong><small>by jeby Labs</small></span></a><nav class="view-nav" aria-label="Lighting Lab sections"><button id="show-lighting" class="quiet" aria-pressed="true">Lighting</button><button id="show-app-profiles" class="quiet" aria-pressed="false">App profiles</button></nav><div class="header-note"><span class="status-dot" id="connection-dot"></span><span id="connection-label">Checking connection</span><span class="local-badge">LOCAL EDITION</span></div></header>
-<main>
-<div class="intro"><div><p class="eyebrow">YOUR DESK. YOUR COLORS.</p><h1>Make room for <span>a little color.</span></h1><p>Pick a look, make it yours, and take it for a spin.</p></div><div class="intro-flow" aria-label="How to use Lighting Lab"><span><b>01</b>Choose a look</span><span><b>02</b>Customize live</span><span><b>03</b>Save & share</span></div></div>
-<section id="app-profiles-view" class="panel app-profiles" hidden aria-labelledby="app-profiles-heading">
-  <div class="section-heading"><div><p class="eyebrow">LOCAL AUTOMATION</p><h1 id="app-profiles-heading">App profiles</h1><p class="help">Switch to a saved lighting profile when one of your chosen apps is running or in front. Rules are checked from top to bottom.</p></div><label class="switch-label app-profile-switch"><input type="checkbox" id="app-profiles-auto"><span class="switch" aria-hidden="true"></span>Automatic switching</label></div>
-  <section class="app-profile-active" aria-live="polite"><div><p class="eyebrow">ACTIVE NOW</p><h2 id="app-profile-active-title">Checking local app rules</h2><p id="app-profile-active-detail" class="help"></p></div><button id="app-profiles-refresh" class="quiet">Check now</button></section>
-  <div class="app-profile-grid"><section class="app-profile-rules"><div class="section-heading"><div><h2>Rules</h2><p class="help">The first enabled match wins. A rule points to a saved Lighting Lab profile; it never copies the lighting settings.</p></div></div><div id="app-profile-rule-list" class="app-rule-list"></div><form id="app-profile-add" class="app-rule-add"><h3>Add a rule</h3><label>Rule name<input id="app-rule-name" maxlength="80" placeholder="Code Focus"></label><label>Executable<input id="app-rule-executable" maxlength="128" placeholder="Code.exe" autocomplete="off"></label><label>When<select id="app-rule-condition"><option value="foreground">In front</option><option value="running">Running</option></select></label><label>Use profile<select id="app-rule-profile"><option value="">Save a Lighting profile first</option></select></label><button class="primary" type="submit">Add rule</button></form></section><aside class="app-profile-sidebar"><section><h2>Detected for your rules</h2><div id="app-profile-detected" class="app-detected-list"></div></section><section><h2>Switching</h2><label>Wait before switching <output id="app-switch-wait-value" for="app-switch-wait">1.0 s</output><input id="app-switch-wait" type="range" min="0" max="10" step=".1" value="1"></label><label>Transition window <output id="app-switch-transition-value" for="app-switch-transition">0.4 s</output><input id="app-switch-transition" type="range" min="0" max="10" step=".1" value=".4"></label><p class="help">Lighting Lab keeps the current setup when no rule matches. The transition value is saved now for compatible providers; current Chroma frames change as the selected profile activates.</p></section><section class="app-profile-privacy"><b>Only app names, only on this PC.</b><p>Lighting Lab checks only the executable names in your enabled rules. It does not collect typed text, window titles, screenshots, or a general process list.</p></section></aside></div>
-  <p id="app-profile-status" class="status" role="status"></p>
-</section><section id="quickstart" class="panel quickstart" aria-labelledby="quickstart-heading">
-  <div class="section-heading"><div><p class="eyebrow">NEW HERE?</p><h2 id="quickstart-heading">Make your first lighting setup in three small moves</h2></div><button id="onboarding-dismiss" class="quiet">Hide guide</button></div>
-  <ol class="quickstart-steps" id="quickstart-steps">
-    <li data-onboarding-step="preset"><span>1</span><div><b>Choose a starting look</b><small>Nothing reaches your hardware until you apply it.</small><button id="onboarding-starter" class="quiet">Try Rainbow Ripple</button></div></li>
-    <li data-onboarding-step="test"><span>2</span><div><b>Test a key reaction</b><small>Use the browser preview before deciding to send anything.</small><button id="onboarding-test" class="quiet">Test in preview</button></div></li>
-    <li data-onboarding-step="apply"><span>3</span><div><b>Apply when ready</b><small>Lighting Lab asks you to confirm the physical result.</small><button id="onboarding-apply" class="primary">Go to Apply</button></div></li>
-  </ol>
-  <p id="quickstart-status" class="help" role="status">Start with any look. Your browser preview is always safe to explore.</p>
-</section>
-<section class="panel presets-panel" aria-labelledby="presets-heading"><div class="section-heading"><div><p class="eyebrow">START SOMEWHERE GOOD</p><h2 id="presets-heading">Find your frequency</h2></div><span class="muted">One click. Then make it your own.</span></div><div id="preset-gallery" class="preset-gallery"></div></section>
-<section id="workspace" class="panel workspace" aria-labelledby="workspace-heading">
-<div class="section-heading workspace-heading"><div><p class="eyebrow">THE PLAYGROUND</p><h2 id="workspace-heading">Your keyboard, in color</h2></div><div class="live-controls"><label class="switch-label"><input type="checkbox" id="live" checked><span class="switch" aria-hidden="true"></span>Live changes</label><button id="connect" class="quiet">Reconnect</button></div></div>
-<div id="device-status" class="device-status" role="status">Checking the local lighting connection…</div>
-<section class="readiness" aria-labelledby="readiness-heading"><div><p class="eyebrow">READY CHECK</p><h3 id="readiness-heading">What Lighting Lab knows right now</h3></div><ol id="readiness-list"><li data-readiness="preview"><b>Preview</b><span></span></li><li data-readiness="controller"><b>Controller</b><span></span></li><li data-readiness="physical"><b>Physical lights</b><span></span></li></ol><button id="readiness-action" class="quiet">Review Apply</button></section>
-<div class="board-toolbar"><label>Keyboard view<select id="keyboard-model"></select></label><span id="model-note" class="muted model-note"></span><button id="pause-preview" class="quiet" aria-pressed="false">Pause preview</button></div>
-<div id="board-scroll" class="board-scroll" role="region" aria-label="Keyboard preview; scroll horizontally to see all keys" tabindex="0"><div id="board" class="keyboard-case"><div class="case-top"><span id="case-name">STANDARD FULL-SIZE</span><span class="case-indicators" aria-hidden="true">● ● ●</span></div><div id="key-surface" class="key-surface"></div><div class="case-bottom"><span>LIGHTING LAB</span><span id="key-count">104 switches</span></div></div></div>
-<div class="selection-toolbar"><div class="selection-controls"><label>Click keys to select<select id="selection-mode"><option value="keyword">Color anchors</option><option value="protected">Protected anchors</option></select></label><button id="select-all" class="quiet">Select all</button><button id="clear-all" class="quiet">Clear all</button><span id="selection-count" class="muted"></span></div><div class="key-legend"><span><i class="color-anchor"></i>Color anchor</span><span><i class="protected-anchor"></i>Protected anchor</span></div></div>
-<p class="help">Color anchors stay your chosen color. Protected anchors keep their orientation color above all effects. Every displayed switch is selectable; physical RGB control depends on your device.</p>
-<div class="effect-controls"><label>Background effect<select id="background"><option value="subtle-keywords">Subtle Keywords</option><option value="rainbow-road">Rainbow Road</option><option value="matrix">Matrix</option><option value="stars-stripes">Stars & Stripes</option><option value="chaos">Chaos</option><option value="aurora">Aurora</option><option value="radar">Radar Sweep</option><option value="prism">Prism Flow</option><option value="ghost">Lights Out</option><option value="solid">Solid Color</option></select></label><label>On keypress<select id="feedback"><option value="reactive">White fade</option><option value="ripple">Ripple</option><option value="waterfall">Waterfall</option><option value="none">No reaction</option></select></label><label class="speed-control">Speed <output id="speed-value" for="speed">3.5×</output><input type="range" id="speed" min="0.25" max="6" step="0.25" value="3.5"></label><label class="color-control">Anchor / solid color<input type="color" id="color" value="#ff0033"></label></div>
-<div class="check-row"><label><input type="checkbox" id="minimalist">Keypress only <small>Dark background</small></label><label><input type="checkbox" id="protect" checked>Keep color anchors during feedback</label><label><input type="checkbox" id="sync-mouse">Sync compatible mouse</label></div>
-<div id="apply-status" class="status" role="status" aria-live="polite">Preview ready. Apply sends it to your physical keyboard; live editing sends later changes automatically.</div>
-<p class="help">A controller acknowledgement means software accepted a request. Confirm the physical keyboard before relying on an effect.</p>
-<p id="layer-warning" class="help"></p>
-<div class="save-toolbar"><div><button id="apply" class="primary">Apply</button><button id="save-profile" class="quiet">Save as Profile</button><button id="export-executable" class="quiet">Download .exe</button></div><span class="muted">Apply: keyboard now. Profile: save in a controller. EXE: run a preset on another Windows PC.</span></div>
-<div class="profile-controls"><label>Profile name<input id="profile-name" value="My Lighting" maxlength="80"></label><label>Save in<select id="profile-software"><option value="lighting-lab">Lighting Lab (full setup)</option><option value="synapse-native">Razer Synapse Studio</option></select></label><label>Saved profiles<select id="saved-profiles"><option value="">Choose a profile</option></select></label><button id="load-profile" class="quiet">Load Profile</button></div><p id="profile-status" class="help" role="status"></p>
-<div class="button-row"><button id="save-json" class="quiet">Export Setup JSON</button><button id="share-link" class="quiet">Copy Share Link</button><label class="button quiet" for="import-setup" tabindex="0" role="button">Import Setup JSON<input type="file" id="import-setup" accept="application/json,.json" hidden></label><label>Executable target<select id="export-target"><option value="auto">Auto-detect supported keyboard</option><option value="yunzii-al65">YUNZII AL65 firmware mode</option></select></label></div>
-<div id="physical-check" class="button-row" hidden><span>Did your physical keyboard change?</span><button id="confirm-visible" class="quiet">Yes, I See It</button><button id="confirm-unchanged" class="quiet">No, Unchanged</button><button id="repair-connection" class="quiet">Retry Chroma Connection</button></div>
-<div id="success-next" class="success-next" hidden><div><b>That effect landed.</b><small>Keep it as a profile, or leave a quick note while the result is fresh.</small></div><button id="success-save" class="quiet">Save this setup</button><button id="success-feedback" class="quiet">Give feedback</button><button id="success-dismiss" class="quiet" aria-label="Dismiss next steps">Not now</button></div>
-<label id="approximation-option" class="approximation-option" hidden><input type="checkbox" id="accept-approximation">Use built-in AL65 lighting: whole board, without anchors or layered reactions</label><p id="executable-status" class="help">Checking executable export options for this keyboard…</p>
-</section>
-<div class="advanced-grid">
-<details class="panel"><summary>Connection & input <span>Providers, privacy, diagnostics</span></summary><div class="details-content"><label>Lighting provider<select id="provider"><option value="chroma-sdk">Chroma SDK · live effects</option><option value="synapse-native">Synapse · existing saved profile</option></select></label><p class="help">This browser controls the computer running the server. Visiting this page from another computer does not connect that computer’s keyboard.</p><label class="privacy"><input type="checkbox" id="global-input">Global key feedback<small>Key identities are used in memory while enabled. Typed text and key history are not saved.</small></label><div class="button-row"><button id="diagnostics" class="quiet">Download diagnostics</button><button id="release" class="quiet">Return to Synapse</button></div><p id="hardware-guidance" class="help">For a missing numpad decimal press, test Num Lock and keyboard remapping. With Num Lock off, that switch can report Delete.</p></div></details>
-<details class="panel" id="view-editor"><summary>Customize keyboard view <span>Adjust physical key positions</span></summary><div class="details-content"><p class="help">Adjust the illustration without changing device support or what a key types.</p><label><input type="checkbox" id="edit-geometry">Click a key to edit its geometry</label><label>Switch<select id="geometry-key"></select></label><div class="geometry-fields"><label>Label<input id="geometry-label" maxlength="30"></label><label>X<input id="geometry-x" type="number" min="0" max="40" step="0.25"></label><label>Y<input id="geometry-y" type="number" min="0" max="12" step="0.25"></label><label>Width<input id="geometry-w" type="number" min="0.5" max="8" step="0.25"></label><label>Height<input id="geometry-h" type="number" min="0.5" max="4" step="0.25"></label></div><div class="button-row"><button id="geometry-apply" class="quiet">Update switch</button><button id="geometry-reset" class="quiet">Reset to model</button><button id="geometry-export" class="quiet">Save view JSON</button><label for="geometry-import" class="button quiet">Load view JSON<input type="file" id="geometry-import" accept="application/json,.json" hidden></label></div><p id="geometry-status" class="help" role="status"></p></div></details>
-<details class="panel"><summary>Keycap word planner <span>Optional physical cap arrangement</span></summary><div class="details-content"><label>Word set<select id="candidate"></select></label><label>Words, separated by commas<textarea id="words"></textarea></label><p class="help">Write a whole cap as [ESC] or [DEL]. P[ESC]4R uses four physical caps. Moving keycaps is optional.</p><label>Legend display<select id="mode"><option value="lighting">Original key legends</option><option value="caps">Proposed custom cap legends</option></select></label><label><input type="checkbox" id="numpad" checked>Include numpad caps in inventory</label><div id="validation" class="help" role="status"></div><div id="placements"></div><button id="reset" class="quiet">Rebuild word islands</button></div></details>
-<details class="panel"><summary>Setup recipe <span>What is saved and what persists</span></summary><div class="details-content"><pre id="recipe"></pre><p class="help">Direct effects run while this server is alive. Shutdown persistence depends on the keyboard and its provider; saving JSON does not write onboard memory.</p><a href="https://mysupport.razer.com/app/answers/detail/a_id/13713/" target="_blank" rel="noreferrer">Razer Chroma Studio guidance ↗</a></div></details>
-</div></main>
-<footer><span>Lighting Lab <span class="muted">/ by jeby Labs</span></span><button id="feedback-open" class="quiet">Leave feedback</button><span class="muted">Made for your desk. Still an experiment.</span></footer>
-<aside id="feedback-development" class="panel feedback-panel" aria-labelledby="feedback-heading" hidden><h2 id="feedback-heading">How did that feel?</h2><label>Category<select id="feedback-category"><option>Visual quality</option><option>Usability</option><option>Provider/hardware</option><option>Bug</option><option>Missing feature</option></select></label><label>Rating<select id="feedback-rating"><option value="5">5 · Great</option><option value="4">4 · Good</option><option value="3">3 · Okay</option><option value="2">2 · Rough</option><option value="1">1 · Broken</option></select></label><textarea id="feedback-note" aria-label="Optional feedback note" placeholder="What would make it better?"></textarea><div class="button-row"><button id="feedback-submit" class="primary">Save locally</button><button id="feedback-export" class="quiet">Download feedback</button><button id="feedback-github" class="quiet">Open GitHub draft</button><button id="feedback-dismiss" class="quiet">Later</button></div></aside>
-<dialog id="layout-guide"><h2>Identify Your Layout</h2><p id="guide-progress" class="help"></p><h3 id="guide-title"></h3><p id="guide-instruction"></p><div id="guide-choices" class="button-row"></div><div class="button-row"><button id="guide-yes">Yes</button><button id="guide-no">No</button><button id="guide-unknown">Not Sure / Skip</button><button id="guide-broken">This Key Doesn't Work</button></div><p id="guide-note" class="help"></p><button id="guide-close">Close</button></dialog>
-<script src="core.js"></script><script src="effects.js"></script><script src="layout-guide.js"></script><script src="ui.js"></script></body></html>
+<!--
+  ====================================================================================================
+  index.html — the whole Lighting Lab editor is this one static page.
+
+  How the page is served
+    server.cjs serves this file plus core.js, effects.js, layout-guide.js, ui.js and styles.css from a
+    fixed allowlist (STATIC map). There is no bundler, framework, or build step: what you read here is
+    exactly what the browser runs. Opening the file directly from disk still renders a working preview,
+    but everything that talks to hardware needs the local server (`npm start` / Start Lighting Lab.cmd).
+
+  Page skeleton (top to bottom)
+    1. <header>            brand, Lighting / App profiles view switch, live connection badge
+    2. .intro              hero copy
+    3. #app-profiles-view  App Profiles workspace (hidden until "App profiles" is pressed)
+    4. #quickstart         three-step first-run guide (dismissible, progress kept in localStorage)
+    5. .presets-panel      one-click preset gallery (cards are generated by ui.js from its `presets` list)
+    6. #workspace          the editor: device status, ready check, keyboard preview, paint tools, effect
+                           controls, Apply / Save / Export, physical confirmation
+    7. .advanced-grid      collapsible power-user panels
+    8. <footer>, feedback panel, and the "Identify Your Layout" <dialog>
+
+  Controls that do NOT appear below because ui.js injects them at startup (search ui.js for the id):
+    - #keyword-feedback   "Anchor key reaction" select, inserted before the On-keypress control
+    - #identify-layout    "Identify My Layout" button, inserted before #pause-preview
+    - #layout-prompt      detection hint paragraph, inserted before #board-scroll
+    - .group-panel        "Choose what each key group does" editor (#group-editor, #test-typing,
+                          #anchor-blue-flame, #preview-apply), inserted before .effect-controls
+    - .device-picker      "Connected keyboard" select (#selected-device), inserted after #device-status
+    - Key Issues panel    <details> with #issue-key / #mark-broken / #issue-alternate, prepended to
+                          .advanced-grid
+  ui.js also fills the empty containers here: #preset-gallery, #key-surface (one <button class="key">
+  per physical switch), #keyboard-model options, #candidate options, rule lists, and so on.
+
+  Conventions
+    - Every element ui.js touches has an id; ui.js looks them up with $('id'). Renaming an id here
+      means updating ui.js and tests/browser-check.cjs too.
+    - role="status" / aria-live regions announce results to screen readers without stealing focus.
+    - Inline whitespace between buttons/labels is deliberately collapsed with `><` (Prettier style)
+      so inline-flex controls do not gain stray gaps. Keep comments on their own lines between blocks.
+
+  A model preview never implies hardware compatibility; exports identify their actual capability.
+  ====================================================================================================
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#101219" />
+    <title>Lighting Lab · jebyLabs</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Keyboard users can jump straight past the gallery to the editor (visible only when focused). -->
+    <a class="skip-link" href="#workspace">Skip to keyboard editor</a>
+    <!--
+      ===== Site header =====
+      - .identity: brand mark; links back to "./" (a plain reload of the editor).
+      - .view-nav: switches between the Lighting editor and the App Profiles view. ui.js
+        (showAppProfiles) hides the other <main> children instead of navigating, so editor state
+        is never lost. aria-pressed reflects the active view.
+      - .header-note: #connection-dot + #connection-label summarize provider state; ui.js
+        (refreshProviderStatus) rewrites them every 8 s ("Lighting confirmed", "Preview only", ...).
+    -->
+    <header class="site-header">
+      <!-- Brand (redesign pack): the four-key Lighting Lab icon - three keys in the group colors, the fourth
+           carrying the jebyLabs red dot - plus "by jebyLabs" (heavy "jeby", light "Labs"). Inlined so the
+           header renders without extra requests or fonts. -->
+      <a class="identity" href="./" aria-label="Lighting Lab home"
+        ><svg class="brand-icon" viewBox="0 0 256 256" aria-hidden="true">
+          <rect x="8" y="8" width="240" height="240" rx="56" fill="#22202e" />
+          <rect x="24" y="18" width="208" height="200" rx="42" fill="#15141c" />
+          <rect x="62" y="62" width="58" height="58" rx="12" fill="#8f73ff" />
+          <rect x="136" y="62" width="58" height="58" rx="12" fill="#ff7ad9" />
+          <rect x="62" y="136" width="58" height="58" rx="12" fill="#5fd6e8" />
+          <rect
+            x="136"
+            y="136"
+            width="58"
+            height="58"
+            rx="12"
+            fill="#2b2938"
+            stroke="#45425a"
+            stroke-width="3"
+          />
+          <circle cx="165" cy="165" r="11" fill="#e3262f" /></svg
+        ><span class="brand-text"
+          ><strong>Lighting Lab</strong
+          ><small>by <b class="jeby">jeby</b><span class="labs">Labs</span></small></span
+        ></a
+      >
+      <!-- Which saved profile the editor last saved/loaded (ui.js updateProfileIndicator). -->
+      <span id="profile-indicator" class="profile-indicator">Profile · Not saved</span>
+      <div class="header-note">
+        <span class="status-dot" id="connection-dot"></span
+        ><span id="connection-label">Checking connection</span>
+      </div>
+      <nav class="view-nav" aria-label="Lighting Lab sections">
+        <button id="show-lighting" class="quiet" aria-pressed="true">Lighting</button
+        ><button id="show-app-profiles" class="quiet" aria-pressed="false">App profiles</button>
+      </nav>
+      <!-- Simple mode = keyboard + looks only; "All controls" = everything (ui.js setUiMode, remembered). -->
+      <button id="mode-toggle" class="quiet mode-toggle" aria-pressed="false">All controls</button
+      ><button id="header-save" class="quiet header-save" data-fancy>Save &amp; device</button
+      ><button id="header-apply" class="primary header-apply">Apply to keyboard</button>
+    </header>
+    <!--
+      <main> children are toggled as a group by ui.js showAppProfiles(): entering App Profiles hides every
+      visible sibling (marking it data-hidden-for-app-profiles) and leaving restores exactly those.
+    -->
+    <main>
+      <!-- ===== Intro / hero ===== Static copy; .intro-flow is hidden on phones (see styles.css 760px). -->
+      <div class="intro" data-fancy>
+        <div>
+          <p class="eyebrow">YOUR DESK. YOUR COLORS.</p>
+          <h1>Make room for <span>a little color.</span></h1>
+          <p>Pick a look, make it yours, and take it for a spin.</p>
+        </div>
+        <div class="intro-flow" aria-label="How to use Lighting Lab">
+          <span><b>01</b>Choose a look</span><span><b>02</b>Customize live</span
+          ><span><b>03</b>Save & share</span>
+        </div>
+      </div>
+      <!--
+        ===== App Profiles view (redesign pack: lighting-lab-appprofiles.png) =====
+        Hidden until "App profiles" is pressed. The SERVER evaluates rules once per second (it keeps working
+        with this page closed); this view edits rules and shows their state.
+          GET  /api/app-profiles                 config + runtime (active rule, detected apps) + profiles (with settings)
+          POST /api/app-profiles                 add a rule (app rules need an executable; time rules need from/to)
+          POST /api/app-profiles/:id/update      inline edits: condition, profile, name, executable, time window, enabled
+          POST /api/app-profiles/:id/(test|move|toggle|delete)
+          POST /api/app-profiles/config          automatic, waitMs, transitionMs (crossfade), defaultProfileId
+          POST /api/app-profiles/discover        user-started list of visible desktop apps
+        Rules point to a saved profile by id; they never copy lighting settings.
+      -->
+      <section
+        id="app-profiles-view"
+        class="panel app-profiles"
+        hidden
+        aria-labelledby="app-profiles-heading"
+      >
+        <div class="section-heading">
+          <div>
+            <h1 id="app-profiles-heading">App profiles</h1>
+            <p class="help">
+              Your keyboard switches lighting when you switch apps. Rules are checked top to bottom, and the
+              first match wins.
+            </p>
+          </div>
+          <label class="switch-label app-profile-switch auto-pill"
+            ><input type="checkbox" id="app-profiles-auto" /><span class="switch" aria-hidden="true"></span
+            >Automatic switching</label
+          >
+        </div>
+        <!-- Active now: which rule owns the lighting, a live mini preview of that profile, and "Try it" chips
+             that simulate a different app in front (preview only - no hardware change). -->
+        <section class="app-profile-active" aria-live="polite">
+          <div class="active-summary">
+            <p class="eyebrow">ACTIVE NOW</p>
+            <h2 class="active-title">
+              <span id="app-active-badge" class="app-badge" aria-hidden="true">–</span
+              ><span id="app-profile-active-title">Checking local app rules</span>
+            </h2>
+            <p id="app-profile-active-detail" class="help"></p>
+            <div class="try-it">
+              <span class="tool-label">TRY IT, APP IN FRONT:</span>
+              <div id="app-try-chips" class="try-chips"></div>
+            </div>
+            <button id="app-profiles-refresh" class="quiet">Check now</button>
+          </div>
+          <figure class="active-preview">
+            <canvas
+              id="app-active-preview"
+              width="560"
+              height="210"
+              aria-label="Preview of the active profile"
+            ></canvas>
+            <figcaption id="app-active-caption" class="help"></figcaption>
+          </figure>
+        </section>
+        <div class="app-profile-grid">
+          <section class="app-profile-rules">
+            <div class="section-heading">
+              <div>
+                <h2>Rules</h2>
+              </div>
+              <p class="help">The highlighted rule is the one driving your keyboard right now.</p>
+            </div>
+            <div class="rule-columns" aria-hidden="true">
+              <span>ORDER</span><span>WHEN THIS APP</span><span>IS</span><span>USE PROFILE</span
+              ><span>ON</span>
+            </div>
+            <!-- Filled by ui.js: one row per rule (inline condition/profile selects, on/off switch, actions). -->
+            <div id="app-profile-rule-list" class="app-rule-list"></div>
+            <!-- "Everything else": optional default profile when no rule matches (none = keep current lighting). -->
+            <div class="app-rule app-rule-default">
+              <b class="app-rule-order">∞</b>
+              <div><strong>Everything else</strong><small>When no rule matches</small></div>
+              <span class="muted">Default</span>
+              <label class="visually-hidden" for="app-default-profile">Default profile</label>
+              <select id="app-default-profile"></select>
+            </div>
+            <details id="app-rule-add-panel" class="app-rule-add-panel">
+              <summary class="primary-summary">+ Add rule</summary>
+              <form id="app-profile-add" class="app-rule-add">
+                <label>Rule name<input id="app-rule-name" maxlength="80" placeholder="Code Focus" /></label
+                ><label id="app-rule-executable-label"
+                  >Executable<input
+                    id="app-rule-executable"
+                    maxlength="128"
+                    placeholder="Code.exe"
+                    autocomplete="off" /></label
+                ><label
+                  >Is<select id="app-rule-condition">
+                    <option value="foreground">In front</option>
+                    <option value="running">Running</option>
+                    <option value="fullscreen">Full screen</option>
+                    <option value="time">Time of day</option>
+                  </select></label
+                ><label id="app-rule-time" class="time-window" hidden
+                  >From – to<span
+                    ><input id="app-rule-from" type="time" value="23:00" /><input
+                      id="app-rule-to"
+                      type="time"
+                      value="07:00" /></span></label
+                ><label
+                  >Use profile<select id="app-rule-profile">
+                    <option value="">Save a Lighting profile first</option>
+                  </select></label
+                ><button class="primary" type="submit">Add rule</button>
+              </form>
+            </details>
+            <div class="quick-add">
+              <span class="help">Detected without a rule:</span>
+              <div id="app-quick-add" class="try-chips"></div>
+            </div>
+          </section>
+          <aside class="app-profile-sidebar">
+            <section>
+              <div class="app-discovery-heading">
+                <h2>Detected on this PC</h2>
+                <button id="app-profiles-discover" class="quiet">Find running apps</button>
+              </div>
+              <div id="app-profile-discoveries" class="app-detected-list"></div>
+              <h3 class="subhead">Apps in your rules</h3>
+              <div id="app-profile-detected" class="app-detected-list"></div>
+            </section>
+            <section>
+              <h2>Switching</h2>
+              <label
+                >Wait before switching <output id="app-switch-wait-value" for="app-switch-wait">1.0 s</output
+                ><input id="app-switch-wait" type="range" min="0" max="10" step=".1" value="1" /></label
+              ><label
+                >Crossfade between profiles
+                <output id="app-switch-transition-value" for="app-switch-transition">0.4 s</output
+                ><input id="app-switch-transition" type="range" min="0" max="10" step=".1" value=".4"
+              /></label>
+              <p class="help">
+                Automatic switches blend smoothly over the crossfade. Test and Load switch instantly.
+              </p>
+            </section>
+            <section class="app-profile-privacy">
+              <b>Only app names, only on this PC</b>
+              <p>
+                Lighting Lab sees which program is in front and whether it is full screen - never window
+                titles, typed text, command lines or what's on screen. Nothing is sent anywhere.
+              </p>
+            </section>
+          </aside>
+        </div>
+        <!-- Saved profiles gallery: thumbnails drawn by the same renderer as the editor. -->
+        <section class="saved-profiles-gallery" aria-labelledby="saved-profiles-heading">
+          <div class="section-heading">
+            <h2 id="saved-profiles-heading">Saved profiles</h2>
+            <button id="app-edit-in-lighting" class="link-button" type="button">Edit in Lighting</button>
+          </div>
+          <div id="app-profile-gallery" class="profile-gallery"></div>
+        </section>
+        <p id="app-profile-status" class="status" role="status"></p>
+      </section>
+      <!--
+        ===== Quickstart (first-run guide) =====
+        Three steps; each <li data-onboarding-step> gets data-complete="true" when ui.js markOnboarding()
+        records it in localStorage ("lighting-lab-onboarding-v1"). "Hide guide" sets dismissed:true there,
+        so the guide stays hidden for this browser only. Nothing here is sent to the server.
+      -->
+      <section id="quickstart" class="panel quickstart" data-fancy aria-labelledby="quickstart-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">NEW HERE?</p>
+            <h2 id="quickstart-heading">Make your first lighting setup in three small moves</h2>
+          </div>
+          <button id="onboarding-dismiss" class="quiet">Hide guide</button>
+        </div>
+        <ol class="quickstart-steps" id="quickstart-steps">
+          <li data-onboarding-step="preset">
+            <span>1</span>
+            <div>
+              <b>Choose a starting look</b
+              ><small>With Live changes on, a connected Razer keyboard follows along instantly.</small
+              ><button id="onboarding-starter" class="quiet">Try Rainbow Ripple</button>
+            </div>
+          </li>
+          <li data-onboarding-step="test">
+            <span>2</span>
+            <div>
+              <b>Test a key reaction</b><small>Click a key or type in the test box to see its reaction.</small
+              ><button id="onboarding-test" class="quiet">Test in preview</button>
+            </div>
+          </li>
+          <li data-onboarding-step="apply">
+            <span>3</span>
+            <div>
+              <b>Apply and confirm</b><small>Then tell Lighting Lab whether your real keyboard changed.</small
+              ><button id="onboarding-apply" class="primary">Go to Apply</button>
+            </div>
+          </li>
+        </ol>
+        <p id="quickstart-status" class="help" role="status">
+          Start with any look. Turn off Live changes (top right of the editor) to experiment in the preview
+          only.
+        </p>
+      </section>
+      <!--
+        ===== Stage: the live keyboard (shown in BOTH Simple and All-controls mode) =====
+        Simple mode is "this keyboard + the looks below". All-controls mode adds the paint tools, the
+        per-group preview toggles, layout tools and test typing (data-fancy). The Apply result and the
+        "Did your physical keyboard change?" check live here so Simple mode gets them too.
+      -->
+      <section id="stage" class="panel stage" aria-labelledby="stage-heading">
+        <div class="stage-heading">
+          <div>
+            <p class="eyebrow">LIVE PREVIEW</p>
+            <h2 id="stage-heading">Your keyboard, in color</h2>
+          </div>
+          <div class="live-controls">
+            <label class="switch-label"
+              ><input type="checkbox" id="live" checked /><span class="switch" aria-hidden="true"></span>Live
+              changes</label
+            ><button id="connect" class="quiet">Reconnect</button>
+          </div>
+        </div>
+        <!-- Paint pills set what clicking a key does (they drive the hidden #selection-mode select);
+             preview chips hide/show a group's lighting in this preview only. Counts update live. -->
+        <div class="stage-tools" data-fancy>
+          <div class="paint-pills" role="group" aria-label="Click keys to">
+            <span class="tool-label">CLICK KEYS TO</span
+            ><button class="pill" data-paint="test" aria-pressed="false">
+              <i class="dot dot-test"></i>Test reactions</button
+            ><button class="pill" data-paint="anchor" aria-pressed="true">
+              <i class="dot dot-anchor"></i>Paint Anchor</button
+            ><button class="pill" data-paint="background" aria-pressed="false">
+              <i class="dot dot-background"></i>Paint Background</button
+            ><button class="pill" data-paint="orientation" aria-pressed="false">
+              <i class="dot dot-orientation"></i>Paint Orientation
+            </button>
+          </div>
+          <div class="preview-chips" role="group" aria-label="Show groups in the preview">
+            <span class="tool-label">PREVIEW</span
+            ><button class="chip chip-anchor" data-preview-group="anchor" aria-pressed="true">
+              Anchor · <b>0</b></button
+            ><button class="chip chip-background" data-preview-group="background" aria-pressed="true">
+              Background · <b>0</b></button
+            ><button class="chip chip-orientation" data-preview-group="orientation" aria-pressed="true">
+              Orientation · <b>0</b>
+            </button>
+          </div>
+        </div>
+        <div data-fancy class="board-toolbar">
+          <label>Keyboard view<select id="keyboard-model"></select></label
+          ><span id="model-note" class="muted model-note"></span
+          ><button id="pause-preview" class="quiet" aria-pressed="false">Pause preview</button>
+        </div>
+        <div
+          id="board-scroll"
+          class="board-scroll"
+          role="region"
+          aria-label="Keyboard preview; scroll horizontally to see all keys"
+          tabindex="0"
+        >
+          <div id="board" class="keyboard-case">
+            <div class="case-top">
+              <span id="case-name">STANDARD FULL-SIZE</span
+              ><span class="case-indicators" aria-hidden="true">● ● ●</span>
+            </div>
+            <div id="key-surface" class="key-surface"></div>
+            <div class="case-bottom"><span>LIGHTING LAB</span><span id="key-count">104 switches</span></div>
+          </div>
+        </div>
+        <p id="case-hint" class="case-hint" aria-live="polite"></p>
+        <div data-fancy class="selection-toolbar">
+          <div class="selection-controls">
+            <label
+              >Click keys to select<select id="selection-mode">
+                <option value="anchor">Paint anchor</option>
+                <option value="background">Paint background</option>
+                <option value="orientation">Paint orientation</option>
+                <option value="test">Test reactions</option>
+              </select></label
+            ><button id="select-all" class="quiet">Select all</button
+            ><button id="clear-all" class="quiet">Clear all</button
+            ><span id="selection-count" class="muted"></span>
+          </div>
+          <div class="key-legend">
+            <span><i class="color-anchor"></i>Anchor</span
+            ><span><i class="protected-anchor"></i>Orientation</span>
+          </div>
+        </div>
+        <p data-fancy class="help">
+          Anchor keys (pink dot) are the ones you want to stand out. Orientation keys (cyan dot) are landmarks
+          such as Esc or WASD. Everything else is background. Each group gets its own color, motion, and
+          reaction below.
+        </p>
+        <!-- Test typing: fires reactions in the preview (and on the keyboard while Live changes is on). -->
+        <label class="test-typing" data-fancy
+          >Test typing<input id="test-typing" placeholder="Type here to fire reactions" autocomplete="off"
+        /></label>
+        <div id="apply-status" class="status" role="status" aria-live="polite">
+          Preview ready. Apply sends it to your physical keyboard; live editing sends later changes
+          automatically.
+        </div>
+        <div id="physical-check" class="button-row" hidden>
+          <span>Did your physical keyboard change?</span
+          ><button id="confirm-visible" class="quiet">Yes, I See It</button
+          ><button id="confirm-unchanged" class="quiet">No, Unchanged</button
+          ><button id="repair-connection" class="quiet">Retry Chroma Connection</button>
+        </div>
+        <div id="success-next" class="success-next" hidden>
+          <div>
+            <b>That effect landed.</b
+            ><small>Keep it as a profile, or leave a quick note while the result is fresh.</small>
+          </div>
+          <button id="success-save" class="quiet">Save this setup</button
+          ><button id="success-feedback" class="quiet">Give feedback</button
+          ><button id="success-dismiss" class="quiet" aria-label="Dismiss next steps">Not now</button>
+        </div>
+      </section>
+      <!--
+        ===== Preset gallery =====
+        ui.js builds one <button class="preset-card"> per entry in its `presets` array (12 today), each with
+        a CSS-drawn .swatch-* thumbnail. aria-pressed marks the preset matching the current controls.
+        Presets drive the same state path as the manual controls (choosePreset -> changed()).
+      -->
+      <section class="panel presets-panel" aria-labelledby="presets-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">START SOMEWHERE GOOD</p>
+            <h2 id="presets-heading">Find your frequency</h2>
+          </div>
+          <span class="muted">One click. Then make it your own.</span>
+        </div>
+        <div id="preset-gallery" class="preset-gallery"></div>
+      </section>
+      <!-- Simple mode only: one clear way into everything else (ui.js setUiMode). -->
+      <div class="simple-expander" data-simple>
+        <button id="expand-fancy" class="quiet">Show all controls</button>
+        <p class="help">Paint key groups, layer effects and reactions, save profiles, and export presets.</p>
+      </div>
+      <!--
+        ===== Workspace (the editor) =====
+        Everything that edits, previews, and sends lighting. The "skip link" target. Sub-sections in order:
+        heading + Live switch, device status, ready check, board toolbar, keyboard preview, paint tools,
+        (injected group editor), quick effect controls, options, status lines, Apply/Save/Export toolbar,
+        profiles, import/export row, physical confirmation, success strip, AL65 consent, export status.
+      -->
+      <section id="workspace" class="panel workspace" data-fancy aria-labelledby="workspace-heading">
+        <!--
+          Heading + live controls. #live ("Live changes") makes every edit stream to the keyboard
+          (debounced ~120 ms, one request in flight, newest wins). #connect re-reads provider status and
+          resumes live writes if a controller is reachable.
+        -->
+        <div class="section-heading workspace-heading">
+          <div>
+            <p class="eyebrow">ALL CONTROLS</p>
+            <h2 id="workspace-heading">Make it yours</h2>
+          </div>
+        </div>
+        <!--
+          Device status: detected keyboard + provider summary from GET /api/status. data-state="ready" or
+          "problem" colors the border. ui.js inserts the "Connected keyboard" picker right after this box.
+        -->
+        <div id="device-status" class="device-status" role="status">
+          Checking the local lighting connection…
+        </div>
+        <!--
+          Ready check: three deliberately separate facts. Preview = the browser renders. Controller = a
+          provider accepted requests. Physical lights = a person confirmed the keyboard really changed.
+          An SDK "success" is never shown as the third one. Each <li> gets data-state ready/pending/problem.
+        -->
+        <section class="readiness" aria-labelledby="readiness-heading">
+          <div>
+            <p class="eyebrow">READY CHECK</p>
+            <h3 id="readiness-heading">What Lighting Lab knows right now</h3>
+          </div>
+          <ol id="readiness-list">
+            <li data-readiness="preview"><b>Preview</b><span></span></li>
+            <li data-readiness="controller"><b>Controller</b><span></span></li>
+            <li data-readiness="physical"><b>Physical lights</b><span></span></li>
+          </ol>
+          <button id="readiness-action" class="quiet">Review Apply</button>
+        </section>
+        <!--
+          Board toolbar: #keyboard-model is filled from KeyboardPlan.modelCatalog (core.js). Choosing a model
+          sets manualModel so later auto-detection will not override it. #model-note explains how accurate
+          the drawing is. ui.js inserts "Identify My Layout" before the pause button.
+        -->
+        <!--
+          Keyboard preview. #board-scroll scrolls horizontally on phones so the keyboard keeps its real
+          proportions (it is focusable so keyboard users can scroll it). #key-surface receives absolutely
+          positioned <button class="key" data-id="Q"> elements laid out in key units (--unit px) by ui.js
+          renderBoard(); media buttons/dials become inert .hardware-control divs. Each frame, paintPreview()
+          samples effects.js — the same renderer that produces the Chroma frames — and tints every key.
+        -->
+        <!--
+          Paint tools. #selection-mode decides what clicking a key does: add it to the anchor / background /
+          orientation group, or fire a test reaction. Every switch belongs to exactly one group (background
+          is "everything not anchor or orientation"). The legend dots match .key.anchor / .key.protected.
+        -->
+        <!--
+          Quick effect controls (the original single-layer controls, kept for presets and older saved setups).
+          ui.js inserts the full per-group editor directly ABOVE this row; changing "Background effect" or
+          "On keypress" here writes into the background group, and the injected "Anchor key reaction" select
+          writes into the anchor group. Speed scales every animated effect; the color input is the
+          anchor / solid color.
+        -->
+        <div class="effect-controls">
+          <label
+            >Background effect<select id="background">
+              <option value="subtle-keywords">Subtle Keywords</option>
+              <option value="rainbow-road">Rainbow Road</option>
+              <option value="matrix">Matrix</option>
+              <option value="stars-stripes">Stars & Stripes</option>
+              <option value="chaos">Chaos</option>
+              <option value="aurora">Aurora</option>
+              <option value="radar">Radar Sweep</option>
+              <option value="prism">Prism Flow</option>
+              <option value="ghost">Lights Out</option>
+              <option value="solid">Solid Color</option>
+            </select></label
+          ><label
+            >On keypress<select id="feedback">
+              <option value="reactive">White fade</option>
+              <option value="ripple">Ripple</option>
+              <option value="waterfall">Waterfall</option>
+              <option value="none">No reaction</option>
+            </select></label
+          ><label class="speed-control"
+            >Speed <output id="speed-value" for="speed">3.5×</output
+            ><input type="range" id="speed" min="0.25" max="6" step="0.25" value="3.5" /></label
+          ><label class="color-control"
+            >Anchor / solid color<input type="color" id="color" value="#ff0033"
+          /></label>
+        </div>
+        <!--
+          Options. Keypress only = dark background, reactions still visible. #protect = anchor keys ignore
+          reactions (ui.js turns it OFF at startup; reactions sit above anchors by default). Mouse sync sends a
+          matching CHROMA_CUSTOM2 frame to a compatible Razer mouse.
+        -->
+        <div class="check-row">
+          <label><input type="checkbox" id="minimalist" />Keypress only <small>Dark background</small></label
+          ><label><input type="checkbox" id="protect" checked />Keep anchor colors during reactions</label
+          ><label><input type="checkbox" id="sync-mouse" />Sync compatible mouse</label>
+        </div>
+        <!--
+          Status lines. #apply-status is the main "what just happened" line for Apply, live writes, imports
+          and downloads. #layer-warning explains why an effect may look partly hidden (anchors, Keypress
+          only, a previous "unchanged" observation).
+        -->
+        <p class="help">
+          A controller acknowledgement means software accepted a request. Confirm the physical keyboard before
+          relying on an effect.
+        </p>
+        <p id="layer-warning" class="help"></p>
+        <!--
+          Primary actions — three different verbs on purpose:
+            Apply           POST /api/apply with force:true (fresh Chroma session) even if Live is off.
+            Save as Profile POST /api/profiles: a named, re-loadable record stored on this PC (and
+                            optionally generated as a Synapse Studio profile).
+            Download .exe   POST /api/export/executable: compiles a small Windows preset player for another
+                            PC (see export.cjs and portable/).
+        -->
+        <div class="save-toolbar">
+          <div>
+            <button id="apply" class="primary">Apply</button
+            ><button id="save-profile" class="quiet">Save as Profile</button
+            ><button id="export-executable" class="quiet">Download .exe</button>
+          </div>
+          <span class="muted"
+            >Apply: keyboard now. Profile: save in a controller. EXE: run a preset on another Windows
+            PC.</span
+          >
+        </div>
+        <!--
+          Saved profiles. #profile-software options are disabled by ui.js when a controller cannot store the
+          current setup (e.g. Synapse Studio only supports static colors + white Reactive). #saved-profiles
+          lists GET /api/profiles; Load re-applies through the profile's own controller; Delete asks first.
+        -->
+        <div class="profile-controls">
+          <label>Profile name<input id="profile-name" value="My Lighting" maxlength="80" /></label
+          ><label
+            >Save in<select id="profile-software">
+              <option value="lighting-lab">Lighting Lab (full setup)</option>
+              <option value="synapse-native">Razer Synapse Studio</option>
+            </select></label
+          ><label
+            >Saved profiles<select id="saved-profiles">
+              <option value="">Choose a profile</option>
+            </select></label
+          >
+          <div class="profile-actions">
+            <button id="load-profile" class="quiet">Load Profile</button
+            ><button id="delete-profile" class="quiet" title="Delete the selected saved profile">
+              Delete
+            </button>
+          </div>
+        </div>
+        <p id="profile-status" class="help" role="status"></p>
+        <!--
+          File-based sharing. Export/Import Setup JSON round-trips the complete editor state (format
+          "lighting-lab-effect-v1"). Copy Share Link puts the same recipe in the URL #fragment — opening it
+          restores the preview only and never touches hardware. The Import label acts as a button
+          (role/tabindex + Enter/Space handled in ui.js) around a hidden file input. #export-target chooses
+          which kind of .exe the Download button builds.
+        -->
+        <div class="button-row">
+          <button id="save-json" class="quiet">Export Setup JSON</button
+          ><button id="share-link" class="quiet">Copy Share Link</button
+          ><label class="button quiet" for="import-setup" tabindex="0" role="button"
+            >Import Setup JSON<input
+              type="file"
+              id="import-setup"
+              accept="application/json,.json"
+              hidden /></label
+          ><label
+            >Executable target<select id="export-target">
+              <option value="auto">Auto-detect supported keyboard</option>
+              <option value="yunzii-al65">YUNZII AL65 firmware mode</option>
+            </select></label
+          >
+        </div>
+        <!--
+          Physical confirmation, shown after every acknowledged write. The answer is stored per keyboard
+          model + provider (POST /api/control-verification) and drives the "Physical lights" ready check.
+          Retry Chroma Connection = POST /api/repair: fresh SDK session + Synapse "Chroma Apps" readback.
+        -->
+        <!-- Success strip: appears after "Yes, I See It" to offer saving or feedback; never blocks editing. -->
+        <!--
+          AL65 consent + export status. The AL65 firmware only offers whole-board built-in modes, so its
+          .exe is an approximation; Download stays disabled until this box is ticked (enforced again on the
+          server). #executable-status lists what the selected target can and cannot reproduce.
+        -->
+        <label id="approximation-option" class="approximation-option" hidden
+          ><input type="checkbox" id="accept-approximation" />Use built-in AL65 lighting: whole board, without
+          anchors or layered reactions</label
+        >
+        <p id="executable-status" class="help">Checking executable export options for this keyboard…</p>
+      </section>
+      <!--
+        ===== Advanced panels =====
+        Collapsed <details> panels for things most people never need. ui.js prepends a "Key Issues &
+        Workarounds" panel to this grid at startup.
+      -->
+      <div class="advanced-grid" data-fancy>
+        <!--
+          Connection & input: provider choice (live Chroma SDK vs. an existing Synapse profile), opt-in
+          global key feedback (global-input.ps1 keyboard hook; key IDs in memory only), diagnostics
+          download (GET /api/diagnostics), and "Return to Synapse" (POST /api/release).
+        -->
+        <details class="panel">
+          <summary>Connection & input <span>Providers, privacy, diagnostics</span></summary>
+          <div class="details-content">
+            <label
+              >Lighting provider<select id="provider">
+                <option value="chroma-sdk">Chroma SDK · live effects</option>
+                <option value="synapse-native">Synapse · existing saved profile</option>
+              </select></label
+            >
+            <p class="help">
+              This browser controls the computer running the server. Visiting this page from another computer
+              does not connect that computer’s keyboard.
+            </p>
+            <label class="privacy"
+              ><input type="checkbox" id="global-input" />Global key feedback<small
+                >Key identities are used in memory while enabled. Typed text and key history are not
+                saved.</small
+              ></label
+            >
+            <div class="button-row">
+              <button id="diagnostics" class="quiet">Download diagnostics</button
+              ><button id="release" class="quiet">Return to Synapse</button>
+            </div>
+            <p id="hardware-guidance" class="help">
+              For a missing numpad decimal press, test Num Lock and keyboard remapping. With Num Lock off,
+              that switch can report Delete.
+            </p>
+          </div>
+        </details>
+        <!--
+          Customize keyboard view: edit the DRAWING only (label, x, y, width, height in key units). Physical
+          switch IDs and Chroma coordinates never change, so a custom view cannot misroute lighting.
+          Bounds here match core.js layoutForModel('custom') validation.
+        -->
+        <details class="panel" id="view-editor">
+          <summary>Customize keyboard view <span>Adjust physical key positions</span></summary>
+          <div class="details-content">
+            <p class="help">Adjust the illustration without changing device support or what a key types.</p>
+            <label><input type="checkbox" id="edit-geometry" />Click a key to edit its geometry</label
+            ><label>Switch<select id="geometry-key"></select></label>
+            <div class="geometry-fields">
+              <label>Label<input id="geometry-label" maxlength="30" /></label
+              ><label>X<input id="geometry-x" type="number" min="0" max="40" step="0.25" /></label
+              ><label>Y<input id="geometry-y" type="number" min="0" max="12" step="0.25" /></label
+              ><label>Width<input id="geometry-w" type="number" min="0.5" max="8" step="0.25" /></label
+              ><label>Height<input id="geometry-h" type="number" min="0.5" max="4" step="0.25" /></label>
+            </div>
+            <div class="button-row">
+              <button id="geometry-apply" class="quiet">Update switch</button
+              ><button id="geometry-reset" class="quiet">Reset to model</button
+              ><button id="geometry-export" class="quiet">Save view JSON</button
+              ><label for="geometry-import" class="button quiet"
+                >Load view JSON<input type="file" id="geometry-import" accept="application/json,.json" hidden
+              /></label>
+            </div>
+            <p id="geometry-status" class="help" role="status"></p>
+          </div>
+        </details>
+        <!--
+          Keycap word planner: an optional hobby tool. Plans words spelled with physically moved keycaps,
+          checks the cap inventory (core.js validate), and "Rebuild word islands" makes those keys anchors.
+        -->
+        <details class="panel">
+          <summary>Keycap word planner <span>Optional physical cap arrangement</span></summary>
+          <div class="details-content">
+            <label>Word set<select id="candidate"></select></label
+            ><label>Words, separated by commas<textarea id="words"></textarea></label>
+            <p class="help">
+              Write a whole cap as [ESC] or [DEL]. P[ESC]4R uses four physical caps. Moving keycaps is
+              optional.
+            </p>
+            <label
+              >Legend display<select id="mode">
+                <option value="lighting">Original key legends</option>
+                <option value="caps">Proposed custom cap legends</option>
+              </select></label
+            ><label><input type="checkbox" id="numpad" checked />Include numpad caps in inventory</label>
+            <div id="validation" class="help" role="status"></div>
+            <div id="placements"></div>
+            <button id="reset" class="quiet">Rebuild word islands</button>
+          </div>
+        </details>
+        <!-- Setup recipe: a plain-text summary of the current configuration (#recipe is written by ui.js). -->
+        <details class="panel">
+          <summary>Setup recipe <span>What is saved and what persists</span></summary>
+          <div class="details-content">
+            <pre id="recipe"></pre>
+            <p class="help">
+              Direct effects run while this server is alive. Shutdown persistence depends on the keyboard and
+              its provider; saving JSON does not write onboard memory.
+            </p>
+            <a
+              href="https://mysupport.razer.com/app/answers/detail/a_id/13713/"
+              target="_blank"
+              rel="noreferrer"
+              >Razer Chroma Studio guidance ↗</a
+            >
+          </div>
+        </details>
+      </div>
+    </main>
+    <!-- ===== Footer ===== "Leave feedback" opens the floating feedback panel below. -->
+    <!-- Co-branding per the brand sheet: jebyLabs lockup | "built with" | JA Insights wordmark, side by side
+         with a divider; the two marks are never merged. -->
+    <footer class="site-footer">
+      <div class="footer-brands">
+        <span class="jebylabs-lockup"
+          ><svg class="jebylabs-mark" viewBox="0 0 256 256" aria-hidden="true">
+            <rect x="8" y="8" width="240" height="240" rx="56" fill="#2c2c36" />
+            <rect x="28" y="20" width="200" height="196" rx="40" fill="#17171d" />
+            <path
+              d="M140 104 V176 Q140 206 110 206 Q94 206 84 198"
+              fill="none"
+              stroke="#fff"
+              stroke-width="30"
+              stroke-linecap="round"
+            />
+            <circle cx="140" cy="62" r="17" fill="#e3262f" /></svg
+          ><span class="wordmark"><b class="jeby">jeby</b><span class="labs">Labs</span></span></span
+        ><span class="footer-divider" aria-hidden="true"></span><span class="built-with">built with</span
+        ><img
+          class="ja-insights"
+          src="assets/brand/ja-insights-wordmark-dark.png"
+          alt="JA Insights"
+          width="108"
+          height="40"
+        />
+      </div>
+      <button id="feedback-open" class="quiet">Leave feedback</button>
+      <span class="muted footer-tagline"
+        >Lighting Lab is a jebyLabs product. Made for your desk. Still an experiment.</span
+      >
+    </footer>
+    <!--
+      ===== Feedback panel =====
+      Fixed bottom-right card. "Save locally" stores the note in this browser's localStorage only
+      ("lighting-lab-feedback-v1"). Nothing is uploaded: the user may download the records or open a
+      prefilled GitHub issue draft in a new tab and decide there whether to submit it.
+    -->
+    <aside id="feedback-development" class="panel feedback-panel" aria-labelledby="feedback-heading" hidden>
+      <h2 id="feedback-heading">How did that feel?</h2>
+      <label
+        >Category<select id="feedback-category">
+          <option>Visual quality</option>
+          <option>Usability</option>
+          <option>Provider/hardware</option>
+          <option>Bug</option>
+          <option>Missing feature</option>
+        </select></label
+      ><label
+        >Rating<select id="feedback-rating">
+          <option value="5">5 · Great</option>
+          <option value="4">4 · Good</option>
+          <option value="3">3 · Okay</option>
+          <option value="2">2 · Rough</option>
+          <option value="1">1 · Broken</option>
+        </select></label
+      ><textarea
+        id="feedback-note"
+        aria-label="Optional feedback note"
+        placeholder="What would make it better?"
+      ></textarea>
+      <div class="button-row">
+        <button id="feedback-submit" class="primary">Save locally</button
+        ><button id="feedback-export" class="quiet">Download feedback</button
+        ><button id="feedback-github" class="quiet">Open GitHub draft</button
+        ><button id="feedback-dismiss" class="quiet">Later</button>
+      </div>
+    </aside>
+    <!--
+      ===== "Identify Your Layout" dialog =====
+      A brand-free, untimed interview driven by layout-guide.js: it asks for keypresses (numpad, F-row,
+      arrows) or visual choices (navigation block, Enter shape) and picks a standard reference layout.
+      While it is open, ui.js routes keydown events here instead of firing reactions. "This Key Doesn't
+      Work" records a broken key without shrinking the layout. #guide-choices is filled per step.
+    -->
+    <dialog id="layout-guide">
+      <h2>Identify Your Layout</h2>
+      <p id="guide-progress" class="help"></p>
+      <h3 id="guide-title"></h3>
+      <p id="guide-instruction"></p>
+      <div id="guide-choices" class="button-row"></div>
+      <div class="button-row">
+        <button id="guide-yes">Yes</button><button id="guide-no">No</button
+        ><button id="guide-unknown">Not Sure / Skip</button
+        ><button id="guide-broken">This Key Doesn't Work</button>
+      </div>
+      <p id="guide-note" class="help"></p>
+      <button id="guide-close">Close</button>
+    </dialog>
+    <!--
+      ===== Script load order (matters!) =====
+      Plain classic scripts, no modules, executed in order at the end of <body> so every element above
+      already exists:
+        1. core.js         defines globalThis.KeyboardPlan  (switch IDs, Chroma coordinates, layouts)
+        2. effects.js      defines globalThis.LightingEffects (needs KeyboardPlan)
+        3. layout-guide.js defines globalThis.LayoutGuide   (standalone)
+        4. ui.js           reads all three globals and wires up the page
+      core.js and effects.js are also require()d by the Node server, so preview and hardware use the
+      exact same rendering code.
+    -->
+    <script src="core.js"></script>
+    <script src="effects.js"></script>
+    <script src="layout-guide.js"></script>
+    <script src="ui.js"></script>
+  </body>
+</html>
